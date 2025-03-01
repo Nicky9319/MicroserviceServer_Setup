@@ -6,7 +6,7 @@ aio-pika
 aiohttp
 fastapi
 uvicorn
-
+python-dotenv
 
 # Project Dependent Dependencies
 # Example:

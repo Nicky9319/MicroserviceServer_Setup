@@ -27,7 +27,7 @@ This has been made taking into consideration the following:
 2. There Are Some Dependencies that are Project Dependent, You can mention them in the Requirements.txt File.
 3. Some of the Dependencies are Already Mentioned in the ServerScripts/setupServer.sh File, these are needed to run the Server with the Current Configuration.
 
-#### env.json
+#### .env
 1. Mention all the Environment Variables in the env.json File.
 2. One Common Use would be mentioning the IP Address of the MongodDB server here.
 3. Can mention RabbitMQ ports and other service configurations here to notify all Services.
@@ -73,15 +73,10 @@ This has been made taking into consideration the following:
 3. Run the subscriber.py file to receive the message from the Server.
 4. Create Necessary Testing Files Here so that it is Easy to Review the Test and All
 
-
-
-
-
-
-
-
-
-
+## Activating Environment
+### Python
+1. Create a Venv inside the Local Directory itself and Use it rather than creating it in any other place
+2. If Need Different Environment for Different Services Create a venv inside each Service Folder and run the service using that ENV.
 
 
 
