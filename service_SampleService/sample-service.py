@@ -59,7 +59,7 @@ class Service():
         await self.messageQueue.InitializeConnection()
 
         # How to Add a Queue and Map it to a Callback Function
-        await self.messageQueue.AddQueueAndMapToCallback("queue1", self.sample_callback_1)
+        await self.messageQueue.AddQueueAndMapToCallback("sample-queue", self.sample_callback_1)
         
         await self.messageQueue.BoundQueueToExchange()
         await self.messageQueue.StartListeningToQueue()
