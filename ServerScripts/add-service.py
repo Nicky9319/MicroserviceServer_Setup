@@ -1,4 +1,6 @@
 import ipaddress
+import os
+import json
 
 class LanguageSetup():
     def __init__(self):
@@ -54,6 +56,7 @@ class PythonTemplateSetup():
         self.templateName = None
 
         self.serviceName = None
+        self.currDirectory = os.getcwd()
 
     def selectPythonTemplate(self):
         while True:
@@ -208,6 +211,43 @@ class PythonTemplateSetup():
             break
 
         return serverHost, serverPort
+
+
+
+    def addServiceInfoToServiceURLMapping(self, serverHost, serverPort, wsServerHost=None, wsServerPort=None):
+        # Go one directory back from current directory
+        parent_dir = os.path.dirname(self.currDirectory)
+        json_file_path = os.path.join(parent_dir, "service_url_mapping.json")
+
+        # Prepare the data to append
+        data = {
+            "service_name": self.serviceName,
+            "http_host": serverHost,
+            "http_port": serverPort
+        }
+        if wsServerHost and wsServerPort:
+            data["ws_host"] = wsServerHost
+            data["ws_port"] = wsServerPort
+
+        # Read existing data if file exists, else start with empty list
+        if os.path.exists(json_file_path):
+            with open(json_file_path, "r") as f:
+                try:
+                    existing_data = json.load(f)
+                    if not isinstance(existing_data, list):
+                        existing_data = []
+                except json.JSONDecodeError:
+                    existing_data = []
+        else:
+            existing_data = []
+
+        # Append new data
+        existing_data.append(data)
+
+        # Write back to the file
+        with open(json_file_path, "w") as f:
+            json.dump(existing_data, f, indent=4)
+
 
 
 
