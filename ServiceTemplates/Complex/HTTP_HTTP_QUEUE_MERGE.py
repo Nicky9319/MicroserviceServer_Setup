@@ -20,11 +20,21 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../ServiceTemplates/Bas
 from HTTP_SERVER import HTTPServer
 from MESSAGE_QUEUE import MessageQueue
 
+from fastapi.middleware.cors import CORSMiddleware
+
 class Service:
     def __init__(self, httpServerHost, httpServerPort, apiServerHost, apiServerPort):
         self.messageQueue = MessageQueue("amqp://guest:guest@localhost/","/")
         self.apiServer = HTTPServer(apiServerHost, apiServerPort)
         self.httpServer = HTTPServer(httpServerHost, httpServerPort)
+
+        self.httpServer.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     async def fun1(self, message: aio_pika.IncomingMessage):
         msg = message.body.decode()

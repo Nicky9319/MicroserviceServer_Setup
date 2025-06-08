@@ -24,11 +24,22 @@ from MESSAGE_QUEUE import MessageQueue
 from WS_SERVER import WebSocketServer
 
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 class Service:
     def __init__(self, wsServerHost, wsServerPort, httpServerHost, httpServerPort):
         self.messageQueue = MessageQueue("amqp://guest:guest@localhost/","/")
         self.httpServer = HTTPServer(httpServerHost, httpServerPort)
         self.wsServer = WebSocketServer(wsServerHost, wsServerPort)
+
+        self.httpServer.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     async def fun1(self, message: aio_pika.IncomingMessage):
         msg = message.body.decode()
