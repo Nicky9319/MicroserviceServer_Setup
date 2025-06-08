@@ -3,12 +3,21 @@ from fastapi import FastAPI
 import uvicorn
 
 
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # This is Template for a Class that has the Base HTTP class as an object and All the Routes and end points for the HTTP Server Are Defined Here
 class MainServer:
     def __init__(self, httpServerHost, httpServerPort):
         self.fast = HTTPServer(httpServerHost, httpServerPort)
+
+        self.httpServer.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # Define the Routes for the Particular Case
     def ConfigureServerRoutes(self):
