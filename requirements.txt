@@ -8,6 +8,8 @@ fastapi
 uvicorn
 python-dotenv
 
+pymongo
+
 # Project Dependent Dependencies
 # Example:
 # pymongo
