@@ -212,31 +212,105 @@ class PythonTemplateSetup():
 
         return serverHost, serverPort
 
+    def getPortsAndHostForWsServer(self):
+        print("Enter the Host and Port for the WebSocket Server")
+        serverHost = None
+        serverPort = None
+        while True:
+            print("Enter the Host for the WebSocket Server (Default: localhost)")
+
+            serverHost = input("Host: ")
+            if serverHost == "":
+                serverHost = "localhost"
+
+            try:
+                # Try to validate as an IP address
+                ipaddress.ip_address(serverHost)
+            except ValueError:
+                if serverHost != "localhost":
+                    print("Invalid host. Please enter a valid IP address or 'localhost'.")
+                    print("\n\n--------------------------------------------------------------\n\n")
+                    continue
+            
+            break
+    
+        while True:
+            print("Enter the Port for the WebSocket Server (Default: 6000)")
+
+            serverPort = input("Port: ")
+            if serverPort == "":
+                serverPort = 6000
+            
+            if not serverPort.isnumeric():
+                print("Invalid port. Please enter a valid number.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            serverPort = int(serverPort)
+            if serverPort < 1 or serverPort > 65535:
+                print("Port number must be between 1 and 65535. Please try again.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            break
+
+        return serverHost, serverPort
 
 
 
     def setupTemplate1(self):
         self.getServiceName()
         print(self.serviceName)
-        pass
+        serverHost, serverPort = self.getPortsAndHostForHttpServer()
+        print(f"HTTP Server will run on {serverHost}:{serverPort}")
 
     def setupTemplate2(self):
         pass
 
     def setupTemplate3(self):
-        pass
+        self.getServiceName()
+        print(self.serviceName)
+        wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
+        print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
 
     def setupTemplate4(self):
-        pass
+        self.getServiceName()
+        print(self.serviceName)
+        serverHost, serverPort = self.getPortsAndHostForHttpServer()
+        print(f"HTTP Server will run on {serverHost}:{serverPort}")
 
     def setupTemplate5(self):
-        pass
+        self.getServiceName()
+        print(self.serviceName)
+
+        serverHost, serverPort = self.getPortsAndHostForHttpServer()
+        print(f"HTTP Server will run on {serverHost}:{serverPort}")
+
+        apiServerHost, apiServerPort = self.getPortsAndHostForApiServer()
+        print(f"API Server will run on {apiServerHost}:{apiServerPort}")
 
     def setupTemplate6(self):
-        pass
+        self.getServiceName()
+        print(self.serviceName)
+
+        serverHost, serverPort = self.getPortsAndHostForHttpServer()
+        print(f"HTTP Server will run on {serverHost}:{serverPort}")
+
+        apiServerHost, apiServerPort = self.getPortsAndHostForApiServer()
+        print(f"API Server will run on {apiServerHost}:{apiServerPort}")
+
+        wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
+        print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
 
     def setupTemplate7(self):
-        pass
+        self.getServiceName()
+        print(self.serviceName)
+
+        serverHost, serverPort = self.getPortsAndHostForHttpServer()
+        print(f"HTTP Server will run on {serverHost}:{serverPort}")
+
+        wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
+        print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
 
 
     def startTemplateSetup(self):
