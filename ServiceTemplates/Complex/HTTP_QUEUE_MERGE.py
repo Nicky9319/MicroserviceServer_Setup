@@ -21,6 +21,8 @@ class Service():
     def __init__(self,httpServerHost, httpServerPort):
         self.messageQueue = MessageQueue("amqp://guest:guest@localhost/","/")
         self.httpServer = HTTPServer(httpServerHost, httpServerPort)
+        self.privilegedIpAddress = {"127.0.0.1"}
+
 
         self.httpServer.app.add_middleware(
             CORSMiddleware,

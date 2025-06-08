@@ -28,6 +28,9 @@ class Service:
         self.apiServer = HTTPServer(apiServerHost, apiServerPort)
         self.httpServer = HTTPServer(httpServerHost, httpServerPort)
 
+        self.privilegedIpAddress = {"127.0.0.1"}
+
+
         self.httpServer.app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],

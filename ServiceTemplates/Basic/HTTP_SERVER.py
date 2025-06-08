@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 class MainServer:
     def __init__(self, httpServerHost, httpServerPort):
         self.fast = HTTPServer(httpServerHost, httpServerPort)
+        self.privilegedIpAddress = {"127.0.0.1"}
 
         self.httpServer.app.add_middleware(
             CORSMiddleware,
