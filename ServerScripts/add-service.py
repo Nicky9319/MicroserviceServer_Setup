@@ -1,3 +1,5 @@
+import ipaddress
+
 class LanguageSetup():
     def __init__(self):
         self.languageNumberMapping = {
@@ -122,6 +124,97 @@ class PythonTemplateSetup():
             print("\n\n--------------------------------------------------------------\n\n")
             return self.serviceName
 
+    def getPortsAndHostForHttpServer(self):
+        print("Enter the Host and Port for the HTTP Server")
+        serverHost = None
+        serverPort = None
+        while True:
+            print("Enter the Host for the HTTP Server (Default: localhost)")
+
+            serverHost = input("Host: ")
+            if serverHost == "":
+                serverHost = "localhost"
+
+            try:
+                # Try to validate as an IP address
+                ipaddress.ip_address(serverHost)
+            except ValueError:
+                if serverHost != "localhost":
+                    print("Invalid host. Please enter a valid IP address or 'localhost'.")
+                    print("\n\n--------------------------------------------------------------\n\n")
+                    continue
+            
+            break
+    
+        while True:
+            print("Enter the Port for the HTTP Server (Default: 8000)")
+
+            serverPort = input("Port: ")
+            if serverPort == "":
+                serverPort = 8000
+            
+            if not serverPort.isnumeric():
+                print("Invalid port. Please enter a valid number.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            serverPort = int(serverPort)
+            if serverPort < 1 or serverPort > 65535:
+                print("Port number must be between 1 and 65535. Please try again.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            break
+
+        return serverHost, serverPort
+
+    def getPortsAndHostForApiServer(self):
+        print("Enter the Host and Port for the API Server")
+        serverHost = None
+        serverPort = None
+        while True:
+            print("Enter the Host for the API Server (Default: localhost)")
+
+            serverHost = input("Host: ")
+            if serverHost == "":
+                serverHost = "localhost"
+
+            try:
+                # Try to validate as an IP address
+                ipaddress.ip_address(serverHost)
+            except ValueError:
+                if serverHost != "localhost":
+                    print("Invalid host. Please enter a valid IP address or 'localhost'.")
+                    print("\n\n--------------------------------------------------------------\n\n")
+                    continue
+            
+            break
+    
+        while True:
+            print("Enter the Port for the API Server (Default: 8000)")
+
+            serverPort = input("Port: ")
+            if serverPort == "":
+                serverPort = 8000
+            
+            if not serverPort.isnumeric():
+                print("Invalid port. Please enter a valid number.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            serverPort = int(serverPort)
+            if serverPort < 1 or serverPort > 65535:
+                print("Port number must be between 1 and 65535. Please try again.")
+                print("\n\n--------------------------------------------------------------\n\n")
+                continue
+            
+            break
+
+        return serverHost, serverPort
+
+
+
+
     def setupTemplate1(self):
         self.getServiceName()
         print(self.serviceName)
@@ -145,6 +238,7 @@ class PythonTemplateSetup():
     def setupTemplate7(self):
         pass
 
+
     def startTemplateSetup(self):
         if self.templateNumber == 1:
             self.setupTemplate1()
@@ -162,7 +256,7 @@ class PythonTemplateSetup():
             self.setupTemplate7()
         else:
             print("Invalid Template Number. Please try again.")
-# This script sets up the language and template for a service
+
 
 langSetup = LanguageSetup()
 langSetup.selectLanguage()
