@@ -59,13 +59,13 @@ class Service():
     
 
     async def startService(self):
-        await self.messageQueue.InitializeConnection()
+        # await self.messageQueue.InitializeConnection()
 
-        # How to Add a Queue and Map it to a Callback Function
-        await self.messageQueue.AddQueueAndMapToCallback("sample-queue", self.sample_callback_1)
+        # # How to Add a Queue and Map it to a Callback Function
+        # await self.messageQueue.AddQueueAndMapToCallback("sample-queue", self.sample_callback_1)
         
-        await self.messageQueue.BoundQueueToExchange()
-        await self.messageQueue.StartListeningToQueue()
+        # await self.messageQueue.BoundQueueToExchange()
+        # await self.messageQueue.StartListeningToQueue()
 
         await self.ConfigureAPIRoutes()
         await self.httpServer.run_app()
