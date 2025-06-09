@@ -153,7 +153,8 @@ class PythonTemplateSetup():
         if(self.serviceType == "NONE"):
             print("No Service Available for the Following Type")
             return
-        self.addServiceInfoToServiceURLMapping()
+        
+        self.addServiceInfoToServiceURLMapping(self.serviceHttpHost, self.serviceHttpPort)
 
         service_folder_path , self.serviceFolderName = self.addServiceFolder()
         service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
@@ -374,7 +375,7 @@ class PythonTemplateSetup():
             print(f"Error creating folder {folder_path}: {e}")
         return folder_path , folder_name
 
-    def addServiceInfoToServiceURLMapping(self, serverHost, serverPort, wsServerHost=None, wsServerPort=None):
+    def addServiceInfoToServiceURLMapping(self, serverHost, serverPort):
         if(serverHost == "localhost"):
             serverHost = "127.0.0.1"
 

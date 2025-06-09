@@ -18,4 +18,5 @@ cd ../
 
 
 
+.venv/bin/python3.12 service_MainService/main-service.py & 
 #<ADD_SERVICE_START_HERE>
