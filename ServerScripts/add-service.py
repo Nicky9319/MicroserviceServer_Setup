@@ -357,17 +357,23 @@ class PythonTemplateSetup():
             self.addServiceFolder()
             service_folder_path , self.serviceFolderName = self.addServiceFolder()
             service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+            self.addServiceInfoToStartShellScript()
+            self.addServiceInfoToRestartShellScript()
 
         elif self.templateNumber == 3:
             serverHost, serverPort = self.setupTemplate3()
             self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
             service_folder_path , self.serviceFolderName = self.addServiceFolder()
             service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+            self.addServiceInfoToStartShellScript()
+            self.addServiceInfoToRestartShellScript()
 
         elif self.templateNumber == 4:
             serverHost, serverPort, wsServerHost, wsServerPort =self.setupTemplate4()
             service_folder_path , self.serviceFolderName = self.addServiceFolder()
             service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+            self.addServiceInfoToStartShellScript()
+            self.addServiceInfoToRestartShellScript()
 
         else:
             print("Invalid Template Number. Please try again.")
