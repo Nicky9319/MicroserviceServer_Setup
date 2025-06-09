@@ -50,7 +50,7 @@ class HTTPServer:
 
 
 async def start_server():
-    server = MainServer({HTTP_SERVER_HOST}, {HTTP_SERVER_HOST})
+    server = MainServer({HTTP_SERVER_HOST}, {HTTP_SERVER_PORT})
     await server.RunServer()
     pass
 
