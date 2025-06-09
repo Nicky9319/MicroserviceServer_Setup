@@ -56,7 +56,12 @@ class PythonTemplateSetup():
         self.templateName = None
 
         self.serviceName = None
-        self.currDirectory = os.getcwd()
+        self.currDirectory = os.path.dirname(os.path.abspath(__file__))
+        self.parentDirectory = os.path.dirname(self.currDirectory)
+
+        self.serviceFolderName = None
+        self.serviceFileName = None
+
 
     def selectPythonTemplate(self):
         while True:
@@ -214,14 +219,35 @@ class PythonTemplateSetup():
 
 
 
+    def addServiceFile(self, folder_path):
+        # Create a file named main-service.py in the service folder
+        file_name = f"{self.serviceName.lower()}-service.py"
+        file_path = os.path.join(folder_path, file_name)
+        try:
+            with open(file_path, "w") as f:
+                pass
+            print(f"Created file: {file_path}")
+        except Exception as e:
+            print(f"Error creating file {file_path}: {e}")
+        return file_path, file_name
+
+    def addServiceFolder(self):
+        # Create a folder named service_<ServiceName>Service in the parent directory
+        folder_name = f"service_{self.serviceName}Service"
+        folder_path = os.path.join(self.parentDirectory, folder_name)
+        try:
+            os.makedirs(folder_path, exist_ok=True)
+            print(f"Created folder: {folder_path}")
+        except Exception as e:
+            print(f"Error creating folder {folder_path}: {e}")
+        return folder_path , folder_name
+
     def addServiceInfoToServiceURLMapping(self, serverHost, serverPort, wsServerHost=None, wsServerPort=None):
         if(serverHost == "localhost"):
             serverHost = "127.0.0.1"
 
-        # Go one directory back from current directory
-        script_path = os.path.abspath(__file__)
-        parent_dir = os.path.dirname(os.path.dirname(script_path))
-        json_file_path = os.path.join(parent_dir, "ServiceURLMapping.json")
+        # Go one Parent Directory Relative to the Current File
+        json_file_path = os.path.join(self.parentDirectory, "ServiceURLMapping.json")
 
         print(json_file_path)
 
@@ -247,6 +273,39 @@ class PythonTemplateSetup():
             json.dump(existing_data, f, indent=4)
 
         print(f"Service information for {self.serviceName} added to ServiceURLMapping.json")
+
+
+    def addServiceInfoToStartShellScript(self):
+        start_sh_path = os.path.join(self.currDirectory, "start-server.sh")
+        try:
+            with open(start_sh_path, "r") as f:
+                content = f.read()
+            new_content = content.replace(
+                "#<ADD_SERVICE_START_HERE>",
+                f"../.venv/bin/python3.12 {self.serviceFolderName}/{self.serviceFileName} & \n#<ADD_SERVICE_START_HERE>"
+            )
+            with open(start_sh_path, "w") as f:
+                f.write(new_content)
+            print(f"Updated {start_sh_path} with new service start command.")
+        except Exception as e:
+            print(f"Error updating {start_sh_path}: {e}")
+        pass
+
+    def addServiceInfoToRestartShellScript(self):
+        restart_sh_path = os.path.join(self.currDirectory, "restart-server.sh")
+        try:
+            with open(restart_sh_path, "r") as f:
+                content = f.read()
+            new_content = content.replace(
+                "#<ADD_SERVICE_START_HERE>",
+                f"../.venv/bin/python3.12 {self.serviceFolderName}/{self.serviceFileName} & \n#<ADD_SERVICE_START_HERE>"
+            )
+            with open(restart_sh_path, "w") as f:
+                f.write(new_content)
+            print(f"Updated {restart_sh_path} with new service start command.")
+        except Exception as e:
+            print(f"Error updating {restart_sh_path}: {e}")
+        pass
 
 
 
@@ -288,13 +347,28 @@ class PythonTemplateSetup():
         if self.templateNumber == 1:
             serverHost, serverPort = self.setupTemplate1()
             self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
+            service_folder_path , self.serviceFolderName = self.addServiceFolder()
+            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+            self.addServiceInfoToStartShellScript()
+            self.addServiceInfoToRestartShellScript()
+            
         elif self.templateNumber == 2:
             self.setupTemplate2()
+            self.addServiceFolder()
+            service_folder_path , self.serviceFolderName = self.addServiceFolder()
+            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+
         elif self.templateNumber == 3:
             serverHost, serverPort = self.setupTemplate3()
             self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
+            service_folder_path , self.serviceFolderName = self.addServiceFolder()
+            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+
         elif self.templateNumber == 4:
             serverHost, serverPort, wsServerHost, wsServerPort =self.setupTemplate4()
+            service_folder_path , self.serviceFolderName = self.addServiceFolder()
+            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+
         else:
             print("Invalid Template Number. Please try again.")
             print("\n\n--------------------------------------------------------------\n\n")
