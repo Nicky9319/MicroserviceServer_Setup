@@ -215,38 +215,38 @@ class PythonTemplateSetup():
 
 
     def addServiceInfoToServiceURLMapping(self, serverHost, serverPort, wsServerHost=None, wsServerPort=None):
-        # Go one directory back from current directory
-        parent_dir = os.path.dirname(self.currDirectory)
-        json_file_path = os.path.join(parent_dir, "service_url_mapping.json")
+        if(serverHost == "localhost"):
+            serverHost = "127.0.0.1"
 
-        # Prepare the data to append
-        data = {
-            "service_name": self.serviceName,
-            "http_host": serverHost,
-            "http_port": serverPort
-        }
-        if wsServerHost and wsServerPort:
-            data["ws_host"] = wsServerHost
-            data["ws_port"] = wsServerPort
+        # Go one directory back from current directory
+        script_path = os.path.abspath(__file__)
+        parent_dir = os.path.dirname(os.path.dirname(script_path))
+        json_file_path = os.path.join(parent_dir, "ServiceURLMapping.json")
+
+        print(json_file_path)
 
         # Read existing data if file exists, else start with empty list
         if os.path.exists(json_file_path):
             with open(json_file_path, "r") as f:
                 try:
                     existing_data = json.load(f)
-                    if not isinstance(existing_data, list):
-                        existing_data = []
                 except json.JSONDecodeError:
                     existing_data = []
         else:
             existing_data = []
 
+
         # Append new data
-        existing_data.append(data)
+
+        # existing_data.append(data)
+        existing_data[f"{self.serviceName.upper()}_SERVICE"] = f"{serverHost}:{serverPort}"
+
 
         # Write back to the file
         with open(json_file_path, "w") as f:
             json.dump(existing_data, f, indent=4)
+
+        print(f"Service information for {self.serviceName} added to ServiceURLMapping.json")
 
 
 
@@ -256,6 +256,7 @@ class PythonTemplateSetup():
         print(self.serviceName)
         serverHost, serverPort = self.getPortsAndHostForHttpServer()
         print(f"HTTP Server will run on {serverHost}:{serverPort}")
+        return serverHost, serverPort
 
     def setupTemplate2(self):
         self.getServiceName()
@@ -268,6 +269,7 @@ class PythonTemplateSetup():
         print(self.serviceName)
         serverHost, serverPort = self.getPortsAndHostForHttpServer()
         print(f"HTTP Server will run on {serverHost}:{serverPort}")
+        return serverHost, serverPort
 
     def setupTemplate4(self):
         self.getServiceName()
@@ -279,24 +281,24 @@ class PythonTemplateSetup():
         wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
         print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
 
+        return serverHost, serverPort, wsServerHost, wsServerPort
+
 
     def startTemplateSetup(self):
         if self.templateNumber == 1:
-            self.setupTemplate1()
+            serverHost, serverPort = self.setupTemplate1()
+            self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
         elif self.templateNumber == 2:
             self.setupTemplate2()
         elif self.templateNumber == 3:
-            self.setupTemplate3()
+            serverHost, serverPort = self.setupTemplate3()
+            self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
         elif self.templateNumber == 4:
-            self.setupTemplate4()
-        elif self.templateNumber == 5:
-            self.setupTemplate5()
-        elif self.templateNumber == 6:
-            self.setupTemplate6()
-        elif self.templateNumber == 7:
-            self.setupTemplate7()
+            serverHost, serverPort, wsServerHost, wsServerPort =self.setupTemplate4()
         else:
             print("Invalid Template Number. Please try again.")
+            print("\n\n--------------------------------------------------------------\n\n")
+            return
 
 
 langSetup = LanguageSetup()
