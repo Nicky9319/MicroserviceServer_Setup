@@ -16,5 +16,4 @@ cd ../
 # Example: ../.venv/bin/python3.12 service_MainServer/mainServer.py (When Trying to Run from Local venv)
 
     
-../.venv/bin/python3.12 service_TryingService/trying-service.py & 
 #<ADD_SERVICE_START_HERE>
