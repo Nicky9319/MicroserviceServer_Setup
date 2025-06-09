@@ -17,4 +17,5 @@ cd ../
 #          /home/Avatar/Avatar_Env/bin/python3.12 service_LogService/loggingService.py 
 
 
+
 #<ADD_SERVICE_START_HERE>

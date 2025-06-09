@@ -71,7 +71,7 @@ class Service():
 
         
 async def start_service():
-    service = Service({HTTP_SERVER_HOST}, {HTTP_SERVER_HOST})
+    service = Service({HTTP_SERVER_HOST}, {HTTP_SERVER_PORT})
     await service.startService()
 
 if __name__ == "__main__":

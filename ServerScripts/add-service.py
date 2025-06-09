@@ -150,15 +150,21 @@ class PythonTemplateSetup():
         return "NONE"
 
     def pushServiceToServer(self):
-        self.addServiceInfoToServiceURLMapping
+        if(self.serviceType == "NONE"):
+            print("No Service Available for the Following Type")
+            return
+        # self.addServiceInfoToServiceURLMapping()
 
         service_folder_path , self.serviceFolderName = self.addServiceFolder()
         service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
 
-        self.addServiceInfoToStartShellScript()
-        self.addServiceInfoToRestartShellScript()
+        # self.addServiceInfoToStartShellScript()
+        # self.addServiceInfoToRestartShellScript()
 
-        self.addServiceInfoToServiceJsonFile()
+        # self.addServiceInfoToServiceJsonFile()
+
+        self.addServiceInfoToServiceFile(service_file_path)
+
 
 
 
@@ -452,6 +458,30 @@ class PythonTemplateSetup():
 
         print(f"Service Information Stored in the services.json File !!!")
 
+    def addServiceInfoToServiceFile(self, file_path):
+        templateType = self.serviceType
+        templatePath = os.path.join(self.currDirectory, "ServiceTemplates", "python", f"{templateType}.txt")
+        
+        try:
+            with open(templatePath, "r") as template_file:
+                template_content = template_file.read()
+
+            print(template_content)
+            
+            # Replace placeholders in the template with actual values
+            service_content = template_content.replace("{HTTP_SERVER_HOST}", f"'{self.serviceHttpHost}'")
+            service_content = service_content.replace("{HTTP_SERVER_PORT}", f"{self.serviceHttpPort}")
+            service_content = service_content.replace("{WS_SERVER_HOST}", f"'{self.serviceWsHost}'")
+            service_content = service_content.replace("{WS_SERVER_PORT}", f"{self.serviceWsPort}")
+            
+            with open(file_path, "w") as service_file:
+                service_file.write(service_content)
+            
+            print(f"Service file created at {file_path}")
+        except FileNotFoundError:
+            print(f"Template file {templatePath} not found. Please ensure the template exists.")
+
+    
 
 
     def startServiceSetup(self):
@@ -473,10 +503,7 @@ class PythonTemplateSetup():
         print(self.serviceWsHost, self.serviceWsPort)
         print(self.serviceMessageQueue)
         print(self.serviceType)
-
-        self.addServiceInfoToStartShellScript()
-        self.addServiceInfoToRestartShellScript()
-
+        
         self.servicePopulateInformation()
 
         self.pushServiceToServer()
