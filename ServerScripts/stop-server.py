@@ -28,7 +28,7 @@ def stopServer():
     for ports in portList:
         stop_service_on_port(ports)
 
-    stopRabbitMQ()
+    # stopRabbitMQ()
 
 
 def stopRabbitMQ():

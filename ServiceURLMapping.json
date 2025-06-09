@@ -1,4 +1,3 @@
 {
-    "TEST_SERVICE": "127.0.0.1:8080",
-    "TRYING_SERVICE": "127.0.0.1:1900"
+    "TEST_SERVICE": "127.0.0.1:8080"
 }
