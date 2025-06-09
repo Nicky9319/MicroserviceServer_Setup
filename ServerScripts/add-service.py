@@ -1,6 +1,7 @@
 import ipaddress
 import os
 import json
+import random
 
 class LanguageSetup():
     def __init__(self):
@@ -12,14 +13,13 @@ class LanguageSetup():
         self.languageName = None
 
     def selectLanguage(self):
+        print("Select the Language for the Service")
+        print()
+        for lang in self.languageNumberMapping.keys():
+            print(f"{lang} : {self.languageNumberMapping[lang]}") 
+
         while True:
-            print("Select the Language for the Service")
-
             print()
-            for lang in self.languageNumberMapping.keys():
-                print(f"{lang} : {self.languageNumberMapping[lang]}") 
-            print()
-
             language = input("Enter the Language Number: ")
 
             if language == "0":
@@ -27,12 +27,10 @@ class LanguageSetup():
             
             if not language.isnumeric():
                 print("Invalid Input. Please enter a valid number.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
         
             if language not in self.languageNumberMapping.keys():
                 print("Invalid Language Number. Please try again.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
 
             print("\n\n--------------------------------------------------------------\n\n")
@@ -56,11 +54,30 @@ class PythonTemplateSetup():
         self.templateName = None
 
         self.serviceName = None
+        self.serviceFolderName = None
+        self.serviceFileName = None
+        self.serviceHttpHost = None
+        self.serviceHttpPort = None
+        self.serviceWsHost = None
+        self.serviceWsPort = None
+        self.serviceMessageQueue = None
+        self.serviceType = None
+
         self.currDirectory = os.path.dirname(os.path.abspath(__file__))
         self.parentDirectory = os.path.dirname(self.currDirectory)
 
-        self.serviceFolderName = None
-        self.serviceFileName = None
+        self.serviceInformation = {
+            "ServiceLanguage" : "Python",
+            "ServiceName" : None,
+            "ServiceFolderName" : None,
+            "ServiceFileName" : None,
+            "ServiceHttpHost" : None,
+            "ServiceHttpPort" : None,
+            "ServiceWsHost" : None,
+            "ServiceWsPort" : None,
+            "ServiceMessageQueue" : None,
+            "ServiceType" : None
+        }
 
 
     def selectPythonTemplate(self):
@@ -94,134 +111,243 @@ class PythonTemplateSetup():
             print("\n\n--------------------------------------------------------------\n\n")
             return template
 
+    def servicePopulateInformation(self):
+        self.serviceInformation["ServiceName"] = self.serviceName
+        self.serviceInformation["ServiceFolderName"] = self.serviceFolderName
+        self.serviceInformation["ServiceFileName"] = self.serviceFileName
+        self.serviceInformation["ServiceHttpHost"] = self.serviceHttpHost
+        self.serviceInformation["ServiceHttpPort"] = self.serviceHttpPort
+        self.serviceInformation["ServiceWsHost"] = self.serviceWsHost
+        self.serviceInformation["ServiceWsPort"] = self.serviceWsPort
+        self.serviceInformation["ServiceMessageQueue"] = self.serviceMessageQueue
+        self.serviceInformation["ServiceType"] = self.serviceType
+
+    def inferServiceType(self):
+        httpServerIncluded = self.serviceHttpHost is not None
+        wsServerIncluded = self.serviceWsHost is not None
+        messageQueueIncluded = self.serviceMessageQueue
+
+        if httpServerIncluded and wsServerIncluded and messageQueueIncluded:
+            return "WS_HTTP_QUEUE_MERGE"
+        
+        if httpServerIncluded and wsServerIncluded:
+            # return "WS_SERVER_MERGE"
+            return "NONE"
+    
+        if httpServerIncluded and messageQueueIncluded:
+            return "HTTP_QUEUE_MERGE"
+        
+        if wsServerIncluded and messageQueueIncluded:
+            # return "WS_QUEUE_MERGE"
+            return "NONE"
+        
+        if httpServerIncluded:
+            return "HTTP_SERVER"
+        
+        if wsServerIncluded:
+            return "WS_SERVER"
+    
+        return "NONE"
+
+    def pushServiceToServer(self):
+        self.addServiceInfoToServiceURLMapping
+
+        service_folder_path , self.serviceFolderName = self.addServiceFolder()
+        service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+
+        self.addServiceInfoToStartShellScript()
+        self.addServiceInfoToRestartShellScript()
+
+        self.addServiceInfoToServiceJsonFile()
+
+
+
 
     def getServiceName(self):
+        print("Enter the Name of the Service, and Remember the Service would be named as service_<ServiceName>Service")
+        print("For Example, if you enter 'Main' then, the folder Name would be service_MainService and the py file inside it would be named main-service.py")
         while True:
-            print("Enter the Name of the Service, and Remember the Service would be named as service_<ServiceName>Service")
-            print("For Example, if you enter 'Main' then, the folder Name would be service_MainService and the py file inside it would be named main-service.py")
-
             print()
             serviceName = input("Enter the Service Name: ")
             serviceName = serviceName.strip()
 
             if " " in serviceName:
                 print("Service Name should not contain spaces. Please enter a valid name without spaces.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
         
             if "-" in serviceName:
                 print("Service Name should not contain dashes. Please enter a valid name without dashes.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
 
             if "/" in serviceName:
                 print("Service Name should not contain slashes. Please enter a valid name without slashes.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
 
             if "," in serviceName:
                 print("Service Name should not contain commas. Please enter a valid name without commas.")
-                print("\n\n--------------------------------------------------------------\n\n")
                 continue
 
-            self.serviceName = serviceName
+            if serviceName == "":
+                print("Service Name cannot be empty. Please enter a valid name.")
+                continue
 
             print("\n\n--------------------------------------------------------------\n\n")
-            return self.serviceName
+            return serviceName
 
-    def getPortsAndHostForHttpServer(self):
+    def getHostandPortForHttpServer(self):
+        while True:
+            needHttpServer = input("Do you want to add an HTTP Server? (yes/no) [Default = no]: ").strip().lower()
+            if needHttpServer in ["yes", "y"]:
+                print()
+                break
+            elif needHttpServer in ["no", "n",""]:
+                print("Skipping HTTP Server setup.")
+                print()
+                return None, None
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+                continue
+            
         print("Enter the Host and Port for the HTTP Server")
-        serverHost = None
-        serverPort = None
+
+        httpServerHost = None
+        httpServerPort = None
+
         while True:
             print("Enter the Host for the HTTP Server (Default: localhost)")
 
-            serverHost = input("Host: ")
-            if serverHost == "":
-                serverHost = "localhost"
+            httpServerHost = input("Host: ")
+            if httpServerHost == "":
+                httpServerHost = "localhost"
 
             try:
                 # Try to validate as an IP address
-                ipaddress.ip_address(serverHost)
+                ipaddress.ip_address(httpServerHost)
             except ValueError:
-                if serverHost != "localhost":
+                if httpServerHost != "localhost":
                     print("Invalid host. Please enter a valid IP address or 'localhost'.")
-                    print("\n\n--------------------------------------------------------------\n\n")
                     continue
             
+            print()
             break
     
+        print("Enter the Port for the HTTP Server (Default: random)")
         while True:
-            print("Enter the Port for the HTTP Server (Default: 8000)")
+            httpServerPort = input("Port: ")
+            if httpServerPort == "":
+                httpServerPort = random.randint(1024, 65535)
+                break
 
-            serverPort = input("Port: ")
-            if serverPort == "":
-                serverPort = 8000
-            
-            if not serverPort.isnumeric():
+            if not httpServerPort.isnumeric():
                 print("Invalid port. Please enter a valid number.")
-                print("\n\n--------------------------------------------------------------\n\n")
+                print()
                 continue
             
-            serverPort = int(serverPort)
-            if serverPort < 1 or serverPort > 65535:
-                print("Port number must be between 1 and 65535. Please try again.")
-                print("\n\n--------------------------------------------------------------\n\n")
+            httpServerPort = int(httpServerPort)
+            if httpServerPort < 1024 or httpServerPort > 65535:
+                print("Port number must be between 1024 and 65535. Please try again.")
+                print()
                 continue
+            
             
             break
 
-        return serverHost, serverPort
+        print("\n\n--------------------------------------------------------------\n\n")
+        return httpServerHost, httpServerPort
 
-    def getPortsAndHostForWsServer(self):
-        print("Enter the Host and Port for the WebSocket Server")
-        serverHost = None
-        serverPort = None
+    def getHostandPortForWsServer(self):
         while True:
-            print("Enter the Host for the WebSocket Server (Default: localhost)")
+            needWsServer = input("Do you want to add an WS Server? (yes/no) [Default = no]: ").strip().lower()
+            if needWsServer in ["yes", "y"]:
+                print()
+                break
+            elif needWsServer in ["no", "n",""]:
+                print("Skipping WS Server setup.")
+                print()
+                return None, None
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+                continue
 
-            serverHost = input("Host: ")
-            if serverHost == "":
-                serverHost = "localhost"
+
+        print("Enter the Host and Port for the WS Server")
+
+        wsServerHost = None
+        wsServerPort = None
+
+        while True:
+            print("Enter the Host for the WS Server (Default: localhost)")
+
+            wsServerHost = input("Host: ")
+            if wsServerHost == "":
+                wsServerHost = "localhost"
 
             try:
                 # Try to validate as an IP address
-                ipaddress.ip_address(serverHost)
+                ipaddress.ip_address(wsServerHost)
             except ValueError:
-                if serverHost != "localhost":
+                if wsServerHost != "localhost":
                     print("Invalid host. Please enter a valid IP address or 'localhost'.")
-                    print("\n\n--------------------------------------------------------------\n\n")
                     continue
             
+            print()
             break
     
+        print("Enter the Port for the WS Server (Default: random)")
         while True:
-            print("Enter the Port for the WebSocket Server (Default: 6000)")
+            wsServerPort = input("Port: ")
+            if wsServerPort == "":
+                wsServerPort = random.randint(1024, 65535)
+                break
 
-            serverPort = input("Port: ")
-            if serverPort == "":
-                serverPort = 6000
-            
-            if not serverPort.isnumeric():
+            if not wsServerPort.isnumeric():
                 print("Invalid port. Please enter a valid number.")
-                print("\n\n--------------------------------------------------------------\n\n")
+                print()
                 continue
             
-            serverPort = int(serverPort)
-            if serverPort < 1 or serverPort > 65535:
-                print("Port number must be between 1 and 65535. Please try again.")
-                print("\n\n--------------------------------------------------------------\n\n")
+            wsServerPort = int(wsServerPort)
+            if wsServerPort < 1024 or wsServerPort > 65535:
+                print("Port number must be between 1024 and 65535. Please try again.")
+                print()
                 continue
+            
             
             break
 
-        return serverHost, serverPort
+        print("\n\n--------------------------------------------------------------\n\n")
+        return wsServerHost, wsServerPort
 
+    def getMessageQueue(Self):
+        while True:
+            needMessageQueue = input("Do you want to add an Message Queue? (yes/no) [Default = no]: ").strip().lower()
+            if needMessageQueue in ["yes", "y"]:
+                print()
+                break
+            elif needMessageQueue in ["no", "n",""]:
+                print("Skipping Message Queue setup.")
+                return False
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+                continue
+        
+        return True
+        
+    def getServiceFolderName(self):
+        # The folder name is service_<ServiceName>Service
+        self.serviceFolderName = f"service_{self.serviceName}Service"
+        return self.serviceFolderName
+
+    def getServiceFileName(self):
+        # The file name is <ServiceName>-service.py
+        self.serviceFileName = f"{self.serviceName.lower()}-service.py"
+        return self.serviceFileName
+
+    
 
 
     def addServiceFile(self, folder_path):
         # Create a file named main-service.py in the service folder
-        file_name = f"{self.serviceName.lower()}-service.py"
+        file_name = self.serviceFileName
         file_path = os.path.join(folder_path, file_name)
         try:
             with open(file_path, "w") as f:
@@ -233,7 +359,7 @@ class PythonTemplateSetup():
 
     def addServiceFolder(self):
         # Create a folder named service_<ServiceName>Service in the parent directory
-        folder_name = f"service_{self.serviceName}Service"
+        folder_name = self.serviceFolderName
         folder_path = os.path.join(self.parentDirectory, folder_name)
         try:
             os.makedirs(folder_path, exist_ok=True)
@@ -257,9 +383,9 @@ class PythonTemplateSetup():
                 try:
                     existing_data = json.load(f)
                 except json.JSONDecodeError:
-                    existing_data = []
+                    existing_data = {}
         else:
-            existing_data = []
+            existing_data = {}
 
 
         # Append new data
@@ -273,7 +399,6 @@ class PythonTemplateSetup():
             json.dump(existing_data, f, indent=4)
 
         print(f"Service information for {self.serviceName} added to ServiceURLMapping.json")
-
 
     def addServiceInfoToStartShellScript(self):
         start_sh_path = os.path.join(self.currDirectory, "start-server.sh")
@@ -307,78 +432,56 @@ class PythonTemplateSetup():
             print(f"Error updating {restart_sh_path}: {e}")
         pass
 
+    def addServiceInfoToServiceJsonFile(self):
+        json_file_path = os.path.join(self.parentDirectory, "services.json")
+        print(json_file_path)
 
-
-
-    def setupTemplate1(self):
-        self.getServiceName()
-        print(self.serviceName)
-        serverHost, serverPort = self.getPortsAndHostForHttpServer()
-        print(f"HTTP Server will run on {serverHost}:{serverPort}")
-        return serverHost, serverPort
-
-    def setupTemplate2(self):
-        self.getServiceName()
-        print(self.serviceName)
-        wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
-        print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
-
-    def setupTemplate3(self):
-        self.getServiceName()
-        print(self.serviceName)
-        serverHost, serverPort = self.getPortsAndHostForHttpServer()
-        print(f"HTTP Server will run on {serverHost}:{serverPort}")
-        return serverHost, serverPort
-
-    def setupTemplate4(self):
-        self.getServiceName()
-        print(self.serviceName)
-
-        serverHost, serverPort = self.getPortsAndHostForHttpServer()
-        print(f"HTTP Server will run on {serverHost}:{serverPort}")
-
-        wsServerHost, wsServerPort = self.getPortsAndHostForWsServer()
-        print(f"WebSocket Server will run on {wsServerHost}:{wsServerPort}")
-
-        return serverHost, serverPort, wsServerHost, wsServerPort
-
-
-    def startTemplateSetup(self):
-        if self.templateNumber == 1:
-            serverHost, serverPort = self.setupTemplate1()
-            self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
-            service_folder_path , self.serviceFolderName = self.addServiceFolder()
-            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
-            self.addServiceInfoToStartShellScript()
-            self.addServiceInfoToRestartShellScript()
-            
-        elif self.templateNumber == 2:
-            self.setupTemplate2()
-            self.addServiceFolder()
-            service_folder_path , self.serviceFolderName = self.addServiceFolder()
-            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
-            self.addServiceInfoToStartShellScript()
-            self.addServiceInfoToRestartShellScript()
-
-        elif self.templateNumber == 3:
-            serverHost, serverPort = self.setupTemplate3()
-            self.addServiceInfoToServiceURLMapping(serverHost , serverPort)
-            service_folder_path , self.serviceFolderName = self.addServiceFolder()
-            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
-            self.addServiceInfoToStartShellScript()
-            self.addServiceInfoToRestartShellScript()
-
-        elif self.templateNumber == 4:
-            serverHost, serverPort, wsServerHost, wsServerPort =self.setupTemplate4()
-            service_folder_path , self.serviceFolderName = self.addServiceFolder()
-            service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
-            self.addServiceInfoToStartShellScript()
-            self.addServiceInfoToRestartShellScript()
-
+        if os.path.exists(json_file_path):
+            with open(json_file_path, "r") as f:
+                try:
+                    existing_data = json.load(f)
+                except json.JSONDecodeError:
+                    existing_data = []
         else:
-            print("Invalid Template Number. Please try again.")
-            print("\n\n--------------------------------------------------------------\n\n")
-            return
+            existing_data = []
+        
+        existing_data.append(self.serviceInformation)
+
+        with open(json_file_path, "w") as f:
+            json.dump(existing_data, f, indent=4)
+
+        print(f"Service Information Stored in the services.json File !!!")
+
+
+
+    def startServiceSetup(self):
+        self.serviceName = self.getServiceName()
+        self.serviceFolderName = self.getServiceFolderName()
+        self.serviceFileName = self.getServiceFileName()
+
+        self.serviceHttpHost, self.serviceHttpPort = self.getHostandPortForHttpServer()
+        self.serviceWsHost, self.serviceWsPort = self.getHostandPortForWsServer()
+
+        self.serviceMessageQueue = self.getMessageQueue()
+
+        self.serviceType = self.inferServiceType()
+
+        print(self.serviceName)
+        print(self.serviceFolderName)
+        print(self.serviceFileName)
+        print(self.serviceHttpHost, self.serviceHttpPort)
+        print(self.serviceWsHost, self.serviceWsPort)
+        print(self.serviceMessageQueue)
+        print(self.serviceType)
+
+        self.addServiceInfoToStartShellScript()
+        self.addServiceInfoToRestartShellScript()
+
+        self.servicePopulateInformation()
+
+        self.pushServiceToServer()
+
+
 
 
 langSetup = LanguageSetup()
@@ -386,5 +489,4 @@ langSetup.selectLanguage()
 
 if langSetup.languageNumber == 1:
     pythonTemplateSetup = PythonTemplateSetup()
-    pythonTemplateSetup.selectPythonTemplate()
-    pythonTemplateSetup.startTemplateSetup()
+    pythonTemplateSetup.startServiceSetup()
