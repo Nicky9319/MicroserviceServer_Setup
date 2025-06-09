@@ -1,0 +1,14 @@
+[
+    {
+        "ServiceLanguage": "Python",
+        "ServiceName": "Main",
+        "ServiceFolderName": "service_MainService",
+        "ServiceFileName": "main-service.py",
+        "ServiceHttpHost": "localhost",
+        "ServiceHttpPort": 59180,
+        "ServiceWsHost": null,
+        "ServiceWsPort": null,
+        "ServiceMessageQueue": true,
+        "ServiceType": "HTTP_QUEUE_MERGE"
+    }
+]

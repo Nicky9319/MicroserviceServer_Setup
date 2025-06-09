@@ -61,6 +61,7 @@ class PythonTemplateSetup():
         self.serviceWsHost = None
         self.serviceWsPort = None
         self.serviceMessageQueue = None
+        self.serviceType = None
 
         self.currDirectory = os.path.dirname(os.path.abspath(__file__))
         self.parentDirectory = os.path.dirname(self.currDirectory)
@@ -110,6 +111,17 @@ class PythonTemplateSetup():
             print("\n\n--------------------------------------------------------------\n\n")
             return template
 
+    def servicePopulateInformation(self):
+        self.serviceInformation["ServiceName"] = self.serviceName
+        self.serviceInformation["ServiceFolderName"] = self.serviceFolderName
+        self.serviceInformation["ServiceFileName"] = self.serviceFileName
+        self.serviceInformation["ServiceHttpHost"] = self.serviceHttpHost
+        self.serviceInformation["ServiceHttpPort"] = self.serviceHttpPort
+        self.serviceInformation["ServiceWsHost"] = self.serviceWsHost
+        self.serviceInformation["ServiceWsPort"] = self.serviceWsPort
+        self.serviceInformation["ServiceMessageQueue"] = self.serviceMessageQueue
+        self.serviceInformation["ServiceType"] = self.serviceType
+
     def inferServiceType(self):
         httpServerIncluded = self.serviceHttpHost is not None
         wsServerIncluded = self.serviceWsHost is not None
@@ -136,6 +148,19 @@ class PythonTemplateSetup():
             return "WS_SERVER"
     
         return "NONE"
+
+    def pushServiceToServer(self):
+        self.addServiceInfoToServiceURLMapping
+
+        service_folder_path , self.serviceFolderName = self.addServiceFolder()
+        service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
+
+        self.addServiceInfoToStartShellScript()
+        self.addServiceInfoToRestartShellScript()
+
+        self.addServiceInfoToServiceJsonFile()
+
+
 
 
     def getServiceName(self):
@@ -322,7 +347,7 @@ class PythonTemplateSetup():
 
     def addServiceFile(self, folder_path):
         # Create a file named main-service.py in the service folder
-        file_name = f"{self.serviceName.lower()}-service.py"
+        file_name = self.serviceFileName
         file_path = os.path.join(folder_path, file_name)
         try:
             with open(file_path, "w") as f:
@@ -334,7 +359,7 @@ class PythonTemplateSetup():
 
     def addServiceFolder(self):
         # Create a folder named service_<ServiceName>Service in the parent directory
-        folder_name = f"service_{self.serviceName}Service"
+        folder_name = self.serviceFolderName
         folder_path = os.path.join(self.parentDirectory, folder_name)
         try:
             os.makedirs(folder_path, exist_ok=True)
@@ -358,9 +383,9 @@ class PythonTemplateSetup():
                 try:
                     existing_data = json.load(f)
                 except json.JSONDecodeError:
-                    existing_data = []
+                    existing_data = {}
         else:
-            existing_data = []
+            existing_data = {}
 
 
         # Append new data
@@ -407,6 +432,25 @@ class PythonTemplateSetup():
             print(f"Error updating {restart_sh_path}: {e}")
         pass
 
+    def addServiceInfoToServiceJsonFile(self):
+        json_file_path = os.path.join(self.parentDirectory, "services.json")
+        print(json_file_path)
+
+        if os.path.exists(json_file_path):
+            with open(json_file_path, "r") as f:
+                try:
+                    existing_data = json.load(f)
+                except json.JSONDecodeError:
+                    existing_data = []
+        else:
+            existing_data = []
+        
+        existing_data.append(self.serviceInformation)
+
+        with open(json_file_path, "w") as f:
+            json.dump(existing_data, f, indent=4)
+
+        print(f"Service Information Stored in the services.json File !!!")
 
 
 
@@ -420,7 +464,7 @@ class PythonTemplateSetup():
 
         self.serviceMessageQueue = self.getMessageQueue()
 
-        serviceType = self.inferServiceType()
+        self.serviceType = self.inferServiceType()
 
         print(self.serviceName)
         print(self.serviceFolderName)
@@ -428,9 +472,16 @@ class PythonTemplateSetup():
         print(self.serviceHttpHost, self.serviceHttpPort)
         print(self.serviceWsHost, self.serviceWsPort)
         print(self.serviceMessageQueue)
-        print(serviceType)
+        print(self.serviceType)
 
-        pass
+        self.addServiceInfoToStartShellScript()
+        self.addServiceInfoToRestartShellScript()
+
+        self.servicePopulateInformation()
+
+        self.pushServiceToServer()
+
+
 
 
 langSetup = LanguageSetup()

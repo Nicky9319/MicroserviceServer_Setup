@@ -15,5 +15,5 @@ cd ../
 
 # Example: ../.venv/bin/python3.12 service_MainServer/mainServer.py (When Trying to Run from Local venv)
 
-    
+
 #<ADD_SERVICE_START_HERE>
