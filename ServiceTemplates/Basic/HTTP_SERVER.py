@@ -2,6 +2,9 @@ import asyncio
 from fastapi import FastAPI
 import uvicorn
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 from fastapi.middleware.cors import CORSMiddleware
 

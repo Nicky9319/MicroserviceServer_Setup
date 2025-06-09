@@ -2,6 +2,9 @@ import socketio
 from aiohttp import web
 import asyncio
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # This is Template for a Class that has the Base WS class as an object and All the Routes and end points for the WS Server Are Defined Here
 class MainServer:
     def __init__(self, wsServerHost , wsServerPort):

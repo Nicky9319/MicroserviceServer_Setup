@@ -5,6 +5,9 @@ import json
 
 import time
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class MessageQueue:
     def __init__(self, ConnectionURL="amqp://guest:guest@localhost/", ExchangeName="/"):
         self.ExchangeName = ExchangeName
