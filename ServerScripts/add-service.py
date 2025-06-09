@@ -160,7 +160,6 @@ class PythonTemplateSetup():
         service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
 
         self.addServiceInfoToStartShellScript()
-        self.addServiceInfoToRestartShellScript()
 
         self.addServiceInfoToServiceJsonFile()
 
@@ -421,22 +420,6 @@ class PythonTemplateSetup():
             print(f"Updated {start_sh_path} with new service start command.")
         except Exception as e:
             print(f"Error updating {start_sh_path}: {e}")
-        pass
-
-    def addServiceInfoToRestartShellScript(self):
-        restart_sh_path = os.path.join(self.currDirectory, "restart-server.sh")
-        try:
-            with open(restart_sh_path, "r") as f:
-                content = f.read()
-            new_content = content.replace(
-                "#<ADD_SERVICE_START_HERE>",
-                f".venv/bin/python3.12 {self.serviceFolderName}/{self.serviceFileName} & \n#<ADD_SERVICE_START_HERE>"
-            )
-            with open(restart_sh_path, "w") as f:
-                f.write(new_content)
-            print(f"Updated {restart_sh_path} with new service start command.")
-        except Exception as e:
-            print(f"Error updating {restart_sh_path}: {e}")
         pass
 
     def addServiceInfoToServiceJsonFile(self):
