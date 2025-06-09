@@ -1,7 +1,3 @@
-clear
-
-sudo docker-compose down
-sleep 1
 
 sudo docker-compose up -d
 sleep 10
