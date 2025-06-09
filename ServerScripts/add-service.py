@@ -153,15 +153,15 @@ class PythonTemplateSetup():
         if(self.serviceType == "NONE"):
             print("No Service Available for the Following Type")
             return
-        # self.addServiceInfoToServiceURLMapping()
+        self.addServiceInfoToServiceURLMapping()
 
         service_folder_path , self.serviceFolderName = self.addServiceFolder()
         service_file_path, self.serviceFileName = self.addServiceFile(service_folder_path)
 
-        # self.addServiceInfoToStartShellScript()
-        # self.addServiceInfoToRestartShellScript()
+        self.addServiceInfoToStartShellScript()
+        self.addServiceInfoToRestartShellScript()
 
-        # self.addServiceInfoToServiceJsonFile()
+        self.addServiceInfoToServiceJsonFile()
 
         self.addServiceInfoToServiceFile(service_file_path)
 
