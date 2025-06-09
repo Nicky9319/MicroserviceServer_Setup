@@ -41,7 +41,10 @@ def discover_ports():
         services_data = json.load(f)
 
     # Example: return a list of ports to stop (replace with your logic)
-    return [service["ServiceHttpPort"] or service["ServiceWsPort"] for service in services_data if "ServiceHttpPort" in service]
+    httpPorts = [service["ServiceHttpPort"] for service in services_data if service["ServiceHttpPort"] is not None]
+    wsPorts = [service["ServiceWsPort"] for service in services_data if service["ServiceWsPort"] is not None]
+
+    return httpPorts + wsPorts
 
 def stopServer():
     # Mention the Ports you want to stop
