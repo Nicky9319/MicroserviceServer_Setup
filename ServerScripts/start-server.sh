@@ -1,10 +1,5 @@
-clear
-
-sudo docker-compose down
-sleep 1
-
 sudo docker-compose up -d
-sleep 10
+# sleep 10
 
 cd ../
 
@@ -15,6 +10,5 @@ cd ../
 
 # Example: ../.venv/bin/python3.12 service_MainServer/mainServer.py (When Trying to Run from Local venv)
 
-
-
+.venv/bin/python3.12 service_SampleService/sample-service.py & 
 #<ADD_SERVICE_START_HERE>
