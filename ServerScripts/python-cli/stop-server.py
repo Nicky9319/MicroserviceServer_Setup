@@ -25,7 +25,7 @@ def stop_service_on_port(port):
 
 def discover_ports():
     """Discover the ports that are currently in use and print their parent addresses."""
-    parent_address = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    parent_address = os.path.dirname(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
     print(f"Parent folder absolute address: {parent_address}")
 
     service_json_file_path = os.path.join(parent_address, "services.json")
