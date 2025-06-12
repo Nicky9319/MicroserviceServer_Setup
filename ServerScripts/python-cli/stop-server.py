@@ -2,6 +2,16 @@ import subprocess
 import os
 import json
 
+def stop_docker_compose():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(script_dir))
+    compose_file_yml = os.path.join(project_root, "docker-compose.yml")
+    compose_file_yaml = os.path.join(project_root, "docker-compose.yaml")
+    if os.path.exists(compose_file_yml) or os.path.exists(compose_file_yaml):
+        subprocess.run(["sudo", "docker-compose", "down"], cwd=project_root)
+    else:
+        print(f"docker-compose.yml or docker-compose.yaml not found in {project_root}. Skipping docker-compose down.")
+
 def find_pid_by_port(port):
     """Find the PID of the process running on the specified port."""
     result = subprocess.run(["lsof", "-i", f":{port}"], capture_output=True, text=True)
@@ -47,6 +57,7 @@ def discover_ports():
     return httpPorts + wsPorts
 
 def stopServer():
+    stop_docker_compose()
     # Mention the Ports you want to stop
     portList = discover_ports()
     print(portList)
