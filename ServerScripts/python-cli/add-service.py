@@ -181,8 +181,10 @@ class PythonTemplateSetup():
         serviceFileName = f"{self.serviceName.lower()}-service.py"
         serviceFilePath = os.path.join(serviceDirPath, serviceFileName)
         
-        # Read the HTTP service template
-        templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../ServiceTemplates/HTTP_SERVICE.txt")
+        # Read the HTTP service template from the correct location
+        currentDir = os.path.dirname(os.path.abspath(__file__))
+        parentDir = os.path.dirname(currentDir)
+        templatePath = os.path.join(parentDir, "ServiceTemplates", "python", "HTTP_SERVICE.txt")
         
         with open(templatePath, 'r') as templateFile:
             templateContent = templateFile.read()
@@ -197,30 +199,16 @@ class PythonTemplateSetup():
         return serviceFilePath
 
     def replacePlaceholders(self, templateContent):
-        # Replace port section
-        templateContent = self.replaceSection(
-            templateContent,
-            "#<HTTP_SERVER_PORT_START>",
-            "#<HTTP_SERVER_PORT_END>",
-            f"    httpServerPort = {self.serviceHttpPort}"
-        )
+        # Replace the host and port in the Service class initialization
+        oldInit = "service = Service('127.0.0.1', 8080)"
+        newInit = f"service = Service('{self.serviceHttpHost}', {self.serviceHttpPort})"
+        templateContent = templateContent.replace(oldInit, newInit)
         
-        # Replace host section
-        templateContent = self.replaceSection(
-            templateContent,
-            "#<HTTP_SERVER_HOST_START>",
-            "#<HTTP_SERVER_HOST_END>",
-            f'    httpServerHost = "{self.serviceHttpHost}"'
-        )
-        
-        # Replace privileged IP addresses section
-        privilegedIpsStr = "[" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "]"
-        templateContent = self.replaceSection(
-            templateContent,
-            "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>",
-            "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>",
-            f"    httpServerPrivilegedIpAddress = {privilegedIpsStr}"
-        )
+        # Replace privileged IP addresses
+        oldPrivileged = 'self.privilegedIpAddress = {"127.0.0.1"}'
+        privilegedIpsStr = "{" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "}"
+        newPrivileged = f'self.privilegedIpAddress = {privilegedIpsStr}'
+        templateContent = templateContent.replace(oldPrivileged, newPrivileged)
         
         return templateContent
 
