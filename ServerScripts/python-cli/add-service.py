@@ -199,16 +199,30 @@ class PythonTemplateSetup():
         return serviceFilePath
 
     def replacePlaceholders(self, templateContent):
-        # Replace the host and port in the Service class initialization
-        oldInit = "service = Service('127.0.0.1', 8080)"
-        newInit = f"service = Service('{self.serviceHttpHost}', {self.serviceHttpPort})"
-        templateContent = templateContent.replace(oldInit, newInit)
+        # Replace the host
+        templateContent = self.replaceSection(
+            templateContent,
+            "#<HTTP_SERVER_HOST_START>",
+            "#<HTTP_SERVER_HOST_END>",
+            f'    httpServerHost = "{self.serviceHttpHost}"'
+        )
+        
+        # Replace the port
+        templateContent = self.replaceSection(
+            templateContent,
+            "#<HTTP_SERVER_PORT_START>",
+            "#<HTTP_SERVER_PORT_END>",
+            f'    httpServerPort = {self.serviceHttpPort}'
+        )
         
         # Replace privileged IP addresses
-        oldPrivileged = 'self.privilegedIpAddress = {"127.0.0.1"}'
-        privilegedIpsStr = "{" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "}"
-        newPrivileged = f'self.privilegedIpAddress = {privilegedIpsStr}'
-        templateContent = templateContent.replace(oldPrivileged, newPrivileged)
+        privilegedIpsStr = "[" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "]"
+        templateContent = self.replaceSection(
+            templateContent,
+            "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>",
+            "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>",
+            f'    httpServerPrivilegedIpAddress = {privilegedIpsStr}'
+        )
         
         return templateContent
 
