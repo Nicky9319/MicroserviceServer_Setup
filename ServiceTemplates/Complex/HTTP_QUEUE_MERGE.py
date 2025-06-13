@@ -15,63 +15,75 @@ load_dotenv()
 sys.path.append(os.path.join(os.path.dirname(__file__), "../ServiceTemplates/Basic"))
 
 
-from HTTP_SERVER import HTTPServer
-from MESSAGE_QUEUE import MessageQueue
 
 from fastapi.middleware.cors import CORSMiddleware
 
-class Service():
-    def __init__(self,httpServerHost, httpServerPort):
-        self.messageQueue = MessageQueue("amqp://guest:guest@localhost/","/")
-        self.httpServer = HTTPServer(httpServerHost, httpServerPort)
 
-        # How to Declare Priviledged Ip Address to Restrict the API hits.
-        self.privilegedIpAddress = {"127.0.0.1"}
+class HTTP_SERVER():
+    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress={"127.0.0.1"}):
+        self.app = FastAPI()
+        self.host = httpServerHost
+        self.port = httpServerPort
 
-        # How to Add Cors to an Http Server
-        self.httpServer.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        self.privilegedIpAddress = httpServerPrivilegedIpAddress
 
-    # How to create a CallBack Function for a particular Queue
-    async def sample_callback_1(self, message: aio_pika.IncomingMessage):
-        msg = message.body.decode()
-        print("Smaple Callback Function 1 Message : " , msg)
-    
-    async def ConfigureAPIRoutes(self):
-        # How to Make a Single Simple Endpoint
-        @self.httpServer.app.get("/")
-        async def read_root():
+        #<HTTP_SERVER_CORS_ADDITION_START>
+        self.app.add_middleware(CORSMiddleware, allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],)
+        #<HTTP_SERVER_CORS_ADDITION_END>
+
+    async def configure_routes(self):
+
+        #<HTTP_SERVER_API_{/api/sample/}_START>
+
+        #<HTTP_SERVER_ENDPOINT_{/api/sample/}_START>
+        @self.app.get("/api/sample/")
+        #<HTTP_SERVER_ENDPOINT_{/api/sample/}_END>
+
+        #<HTTP_SERVER_FUNCTION_{/api/sample/}_START>
+        async def get_api_sample():
             print("Running Through Someone Else")
             return {"message": "Hello World"}
-        
-        # How to Make a Restricted Endpoint but Limited privileges to Certain Ip Addresses Only.
-        @self.httpServer.app.get("/restricted_endpoint")
-        async def restricted_endpoint(request: Request):
-            client_ip = request.client.host
-            if client_ip not in self.privilegedIpAddress:
-                return Response(status_code=403, content="Forbidden")
-            return {"message": "This is a restricted endpoint accessible only to privileged IPs."}
-    
+        #<HTTP_SERVER_FUNCTION_{/api/sample/}_END>
+
+        #<HTTP_SERVER_API_{/api/sample/}_END>
+
+        #<HTTP_SERVER_NEW_API_START>
+        #<HTTP_SERVER_NEW_API_END>
+
+    async def run_app(self):
+        config = uvicorn.Config(self.app, host=self.host, port=self.port)
+        server = uvicorn.Server(config)
+        await server.serve()
+
+class Service():
+    def __init__(self, httpServer = None):
+        self.httpServer = httpServer
 
     async def startService(self):
-        await self.messageQueue.InitializeConnection()
-
-        # How to Add a Queue and Map it to a Callback Function
-        await self.messageQueue.AddQueueAndMapToCallback("queue1", self.sample_callback_1)
-        await self.messageQueue.BoundQueueToExchange()
-        await self.messageQueue.StartListeningToQueue()
-
-        await self.ConfigureAPIRoutes()
+        await self.httpServer.configure_routes()
         await self.httpServer.run_app()
 
         
 async def start_service():
-    service = Service('127.0.0.1', 8080)
+
+    #<HTTP_SERVER_INSTANCE_INTIALIZATION_START>
+
+    #<HTTP_SERVER_PORT_START>
+    httpServerPort = 8080
+    #<HTTP_SERVER_PORT_END>
+
+    #<HTTP_SERVER_HOST_START>
+    httpServerHost = "127.0.0.1"
+    #<HTTP_SERVER_HOST_END>
+
+    #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>
+    httpServerPrivilegedIpAddress = {"127.0.0.1"}
+    #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>
+
+    http_server = HTTP_SERVER(httpServerHost=httpServerHost, httpServerPort=httpServerPort, httpServerPrivilegedIpAddress=httpServerPrivilegedIpAddress)
+    #<HTTP_SERVER_INSTANCE_INTIALIZATION_END>
+
+    service = Service(http_server)
     await service.startService()
 
 if __name__ == "__main__":
