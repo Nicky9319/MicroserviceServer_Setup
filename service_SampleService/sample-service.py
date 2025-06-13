@@ -12,11 +12,15 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "../ServiceTemplates/Basic"))
+
+
+
 from fastapi.middleware.cors import CORSMiddleware
 
 
 class HTTP_SERVER():
-    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress={"127.0.0.1"}):
+    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress={"127.0.0.1"}, data_class_instance=None):
         self.app = FastAPI()
         self.host = httpServerHost
         self.port = httpServerPort
@@ -26,6 +30,8 @@ class HTTP_SERVER():
         #<HTTP_SERVER_CORS_ADDITION_START>
         self.app.add_middleware(CORSMiddleware, allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],)
         #<HTTP_SERVER_CORS_ADDITION_END>
+
+        self.data_class = data_class_instance  # Reference to the Data class instance
 
     async def configure_routes(self):
 
@@ -51,6 +57,16 @@ class HTTP_SERVER():
         server = uvicorn.Server(config)
         await server.serve()
 
+class Data():
+    def __init__(self):
+        self.value = None
+
+    def set_sample_value(self):
+        return self.value
+
+    def get_sample_value(self, value):
+        self.value = value
+
 class Service():
     def __init__(self, httpServer = None):
         self.httpServer = httpServer
@@ -61,6 +77,7 @@ class Service():
 
         
 async def start_service():
+    dataClass = Data()
 
     #<HTTP_SERVER_INSTANCE_INTIALIZATION_START>
 
@@ -76,7 +93,7 @@ async def start_service():
     httpServerPrivilegedIpAddress = {"127.0.0.1"}
     #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>
 
-    http_server = HTTP_SERVER(httpServerHost=httpServerHost, httpServerPort=httpServerPort, httpServerPrivilegedIpAddress=httpServerPrivilegedIpAddress)
+    http_server = HTTP_SERVER(httpServerHost=httpServerHost, httpServerPort=httpServerPort, httpServerPrivilegedIpAddress=httpServerPrivilegedIpAddress, data_class_instance=dataClass)
     #<HTTP_SERVER_INSTANCE_INTIALIZATION_END>
 
     service = Service(http_server)
