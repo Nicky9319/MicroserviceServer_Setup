@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 class HTTP_SERVER():
-    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress={"127.0.0.1"}, data_class_instance=None):
+    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress=["127.0.0.1"], data_class_instance=None):
         self.app = FastAPI()
         self.host = httpServerHost
         self.port = httpServerPort
@@ -90,7 +90,7 @@ async def start_service():
     #<HTTP_SERVER_HOST_END>
 
     #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>
-    httpServerPrivilegedIpAddress = {"127.0.0.1"}
+    httpServerPrivilegedIpAddress = ["127.0.0.1"]
     #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>
 
     http_server = HTTP_SERVER(httpServerHost=httpServerHost, httpServerPort=httpServerPort, httpServerPrivilegedIpAddress=httpServerPrivilegedIpAddress, data_class_instance=dataClass)

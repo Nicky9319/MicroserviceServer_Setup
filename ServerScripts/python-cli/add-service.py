@@ -84,11 +84,11 @@ class PythonTemplateSetup():
         httpServerPort = None
 
         while True:
-            print("Enter the Host for the HTTP Server (Default: localhost)")
+            print("Enter the Host for the HTTP Server (Default: 127.0.0.1)")
 
             httpServerHost = input("Host: ")
             if httpServerHost == "":
-                httpServerHost = "localhost"
+                httpServerHost = "127.0.0.1"
 
             try:
                 # Try to validate as an IP address
@@ -163,13 +163,13 @@ class PythonTemplateSetup():
         # Create service folder name
         serviceFolderName = f"service_{self.serviceName}Service"
         
-        # Get parent directory (one level up from current script)
+        # Get grandparent directory (two levels up from current script)
         currentDir = os.path.dirname(os.path.abspath(__file__))
         parentDir = os.path.dirname(currentDir)
-        grandParentDir = os.path.dirname(parentDir)
+        grandparentDir = os.path.dirname(parentDir)
         
         # Create full path for service directory
-        serviceDirPath = os.path.join(grandParentDir, serviceFolderName)
+        serviceDirPath = os.path.join(grandparentDir, serviceFolderName)
         
         # Create directory if it doesn't exist
         os.makedirs(serviceDirPath, exist_ok=True)
@@ -182,7 +182,7 @@ class PythonTemplateSetup():
         serviceFilePath = os.path.join(serviceDirPath, serviceFileName)
         
         # Read the HTTP service template
-        templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../ServiceTemplates/python/HTTP_SERVICE.txt")
+        templatePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../ServiceTemplates/HTTP_SERVICE.txt")
         
         with open(templatePath, 'r') as templateFile:
             templateContent = templateFile.read()
@@ -233,13 +233,9 @@ class PythonTemplateSetup():
         if endIndex == -1:
             return content
         
-        # Find the start of the line containing the start marker to get indentation
-        startLineBegin = content.rfind('\n', 0, startIndex) + 1
-        startIndentation = content[startLineBegin:startIndex]
-        
-        # Find the start of the line containing the end marker to get its indentation
-        endLineBegin = content.rfind('\n', 0, endIndex) + 1
-        endIndentation = content[endLineBegin:endIndex]
+        # Find the start of the start marker line to get proper indentation
+        lineStart = content.rfind('\n', 0, startIndex) + 1
+        indentation = content[lineStart:startIndex]
         
         # Find the end of the end marker line
         endLineEnd = content.find('\n', endIndex)
@@ -248,11 +244,76 @@ class PythonTemplateSetup():
         else:
             endLineEnd += 1  # Include the newline
         
-        # Replace the section while preserving indentation
+        # Replace the section with proper indentation for end marker
         before = content[:startIndex]
         after = content[endLineEnd:]
         
-        return before + startMarker + '\n' + newContent + '\n' + endIndentation + endMarker + '\n' + after
+        return before + startMarker + '\n' + newContent + '\n' + indentation + endMarker + '\n' + after
+
+    def updateServicesJson(self):
+        # Get the path to services.json
+        currentDir = os.path.dirname(os.path.abspath(__file__))
+        parentDir = os.path.dirname(os.path.dirname(currentDir))  # Go up two levels to reach /home/paarth/Test
+        servicesJsonPath = os.path.join(parentDir, "services.json")
+        
+        # Read existing services
+        services = []
+        if os.path.exists(servicesJsonPath):
+            with open(servicesJsonPath, 'r') as file:
+                services = json.load(file)
+        
+        # Create new service entry
+        newService = {
+            "ServiceLanguage": "Python",
+            "ServiceName": self.serviceName,
+            "ServiceFolderName": f"service_{self.serviceName}Service",
+            "ServiceFileName": f"{self.serviceName.lower()}-service.py",
+            "ServiceHttpHost": self.serviceHttpHost,
+            "ServiceHttpPriviledgedIpAddress": self.servicePrivilegedIpAddresses,
+            "ServiceHttpPort": self.serviceHttpPort,
+            "ServiceType": "HTTP_SERVICE"
+        }
+        
+        # Add new service to the list
+        services.append(newService)
+        
+        # Write back to file
+        with open(servicesJsonPath, 'w') as file:
+            json.dump(services, file, indent=4)
+        
+        print(f"Updated services.json with new service: {self.serviceName}")
+
+    def updateEnvFile(self):
+        # Get the path to .env file
+        currentDir = os.path.dirname(os.path.abspath(__file__))
+        parentDir = os.path.dirname(os.path.dirname(currentDir))  # Go up two levels to reach /home/paarth/Test
+        envFilePath = os.path.join(parentDir, ".env")
+        
+        # Read existing .env content
+        envContent = ""
+        if os.path.exists(envFilePath):
+            with open(envFilePath, 'r') as file:
+                envContent = file.read()
+        
+        # Prepare service entry
+        serviceEntry = f'{self.serviceName.upper()}_SERVICE = "{self.serviceHttpHost}:{self.serviceHttpPort}"'
+        commentedServiceEntry = f'# {self.serviceName.upper()}_SERVICE = "{self.serviceHttpHost}:{self.serviceHttpPort}"'
+        
+        # Add to development section
+        devMarker = "#<ADD_DEVELOPMENT_SERVICES_ENVRIONMENT_VARIABLES>"
+        if devMarker in envContent:
+            envContent = envContent.replace(devMarker, f"{devMarker}\n{serviceEntry}")
+        
+        # Add to production section (commented)
+        prodMarker = "#<ADD_PRODUCTION_SERVICES_ENVRIONMENT_VARIABLES>"
+        if prodMarker in envContent:
+            envContent = envContent.replace(prodMarker, f"{prodMarker}\n{commentedServiceEntry}")
+        
+        # Write back to file
+        with open(envFilePath, 'w') as file:
+            file.write(envContent)
+        
+        print(f"Updated .env file with new service environment variables")
 
     def startServiceSetup(self):
         self.serviceName = self.getServiceName()
@@ -265,9 +326,14 @@ class PythonTemplateSetup():
         serviceDirPath = self.createServiceDirectory()
         serviceFilePath = self.generateServiceFile(serviceDirPath)
         
+        # Update services.json and .env files
+        self.updateServicesJson()
+        self.updateEnvFile()
+        
         print(f"\nService created successfully!")
         print(f"Service Directory: {serviceDirPath}")
         print(f"Service File: {serviceFilePath}")
+        print(f"Updated configuration files: services.json and .env")
 
 langSetup = LanguageSetup()
 langSetup.selectLanguage()
