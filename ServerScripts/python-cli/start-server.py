@@ -1,6 +1,7 @@
 import subprocess
 import os
 import shlex
+import json
 
 def run_docker_compose():
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,31 +24,62 @@ def check_env_file():
                 if line and not line.startswith("#") and "=" not in line:
                     print(f"WARNING: .env file syntax error at line {i}: {line}")
 
-def start_services_from_sh():
+def load_env_vars(env_path):
+    """Load environment variables from a .env file into a dict."""
+    env_vars = {}
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                env_vars[key.strip()] = value.strip()
+    return env_vars
+
+def start_services_from_services_json():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(script_dir))
-    start_sh_path = os.path.join(project_root, "ServerScripts", "start-server.sh")
-    if not os.path.exists(start_sh_path):
-        print(f"{start_sh_path} not found.")
+    services_json_path = os.path.join(project_root, "services.json")
+    env_path = os.path.join(project_root, ".env")
+    venv_python = os.path.join(project_root, ".venv", "bin", "python3.12")
+
+    if not os.path.exists(services_json_path):
+        print(f"{services_json_path} not found.")
         return
 
-    with open(start_sh_path, "r") as f:
-        lines = f.readlines()
+    # Load environment variables from .env
+    env_vars = os.environ.copy()
+    env_vars.update(load_env_vars(env_path))
 
-    for line in lines:
-        line = line.strip()
-        # Skip comments and placeholder
-        if not line or line.startswith("#") or "#<ADD_SERVICE_START_HERE>" in line:
+    with open(services_json_path, "r") as f:
+        try:
+            services = json.load(f)
+        except Exception as e:
+            print(f"Error reading {services_json_path}: {e}")
+            return
+
+    for service in services:
+        folder = service.get("ServiceFolderName")
+        filename = service.get("ServiceFileName")
+        if not folder or not filename:
             continue
-        if ".venv/bin/python3.12" in line:
-            cmd = line.replace("&", "").strip()
-            print(f"Starting: {cmd}")
-            try:
-                subprocess.Popen(shlex.split(cmd), cwd=project_root)
-            except FileNotFoundError as e:
-                print(f"ERROR: {e}. Check if the venv and service files exist.")
+        service_path = os.path.join(project_root, folder, filename)
+        if not os.path.exists(service_path):
+            print(f"Service file {service_path} not found. Skipping.")
+            continue
+        cmd = f"{venv_python} {folder}/{filename}"
+        print(f"Starting: {cmd}")
+        try:
+            subprocess.Popen(
+                shlex.split(cmd),
+                cwd=project_root,
+                env=env_vars
+            )
+        except FileNotFoundError as e:
+            print(f"ERROR: {e}. Check if the venv and service files exist.")
 
 if __name__ == "__main__":
     check_env_file()
     run_docker_compose()
-    start_services_from_sh()
+    start_services_from_services_json()
