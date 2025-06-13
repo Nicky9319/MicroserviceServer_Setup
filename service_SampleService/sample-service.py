@@ -12,10 +12,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../ServiceTemplates/Basic"))
-
-
-
 from fastapi.middleware.cors import CORSMiddleware
 
 
