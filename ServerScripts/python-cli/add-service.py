@@ -214,7 +214,7 @@ class PythonTemplateSetup():
         )
         
         # Replace privileged IP addresses section
-        privilegedIpsStr = "{" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "}"
+        privilegedIpsStr = "[" + ", ".join([f'"{ip}"' for ip in self.servicePrivilegedIpAddresses]) + "]"
         templateContent = self.replaceSection(
             templateContent,
             "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>",
