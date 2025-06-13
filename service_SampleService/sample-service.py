@@ -1,5 +1,8 @@
 import asyncio
+
 from fastapi import FastAPI, Response, Request
+from fastapi.middleware.cors import CORSMiddleware
+
 import uvicorn
 
 import asyncio
@@ -12,11 +15,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../ServiceTemplates/Basic"))
 
-
-
-from fastapi.middleware.cors import CORSMiddleware
 
 
 class HTTP_SERVER():
@@ -61,10 +60,10 @@ class Data():
     def __init__(self):
         self.value = None
 
-    def set_sample_value(self):
+    def get_value(self):
         return self.value
 
-    def get_sample_value(self, value):
+    def set_value(self, value):
         self.value = value
 
 class Service():
