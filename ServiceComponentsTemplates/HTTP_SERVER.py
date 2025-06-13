@@ -9,48 +9,46 @@ load_dotenv()
 from fastapi.middleware.cors import CORSMiddleware
 
 
-# This is Template for a Class that has the Base HTTP class as an object and All the Routes and end points for the HTTP Server Are Defined Here
-class MainServer:
-    def __init__(self, httpServerHost, httpServerPort):
-        self.fast = HTTPServer(httpServerHost, httpServerPort)
-        self.privilegedIpAddress = ["127.0.0.1"]
+class HTTP_SERVER():
+    def __init__(self, httpServerHost, httpServerPort, httpServerPrivilegedIpAddress=["127.0.0.1"], data_class_instance=None):
+        self.app = FastAPI()
+        self.host = httpServerHost
+        self.port = httpServerPort
 
-        self.httpServer.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        self.privilegedIpAddress = httpServerPrivilegedIpAddress
 
-    # Define the Routes for the Particular Case
-    def ConfigureServerRoutes(self):
+        #<HTTP_SERVER_CORS_ADDITION_START>
+        self.app.add_middleware(CORSMiddleware, allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],)
+        #<HTTP_SERVER_CORS_ADDITION_END>
 
-        @self.fast.app.get("/")
-        async def read_root():
+        self.data_class = data_class_instance  # Reference to the Data class instance
+
+    async def configure_routes(self):
+
+        #<HTTP_SERVER_API_{/api/sample/}_START>
+
+        #<HTTP_SERVER_ENDPOINT_{/api/sample/}_START>
+        @self.app.get("/api/sample/")
+        #<HTTP_SERVER_ENDPOINT_{/api/sample/}_END>
+
+        #<HTTP_SERVER_FUNCTION_{/api/sample/}_START>
+        async def get_api_sample():
             print("Running Through Someone Else")
             return {"message": "Hello World"}
-    
-    async def RunServer(self):
-        self.ConfigureServerRoutes()
-        await self.fast.run_app()
+        #<HTTP_SERVER_FUNCTION_{/api/sample/}_END>
 
+        #<HTTP_SERVER_API_{/api/sample/}_END>
 
-# This is the Base Class Which can be Called to Setup a HTTP Server
-class HTTPServer:
-    def __init__(self, host="127.0.0.1", port=54545):
-        self.app = FastAPI()
-        self.host = host
-        self.port = port
+        #<HTTP_SERVER_NEW_API_START>
+        #<HTTP_SERVER_NEW_API_END>
 
     async def run_app(self):
         config = uvicorn.Config(self.app, host=self.host, port=self.port)
         server = uvicorn.Server(config)
         await server.serve()
 
-
 async def start_server():
-    server = MainServer('127.0.0.1', 8000)
+    server = HTTP_SERVER('127.0.0.1', 8000,[])
     await server.RunServer()
     pass
 
