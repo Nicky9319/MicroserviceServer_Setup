@@ -65,6 +65,7 @@ class PythonTemplateSetup():
 
         self.currDirectory = os.path.dirname(os.path.abspath(__file__))
         self.parentDirectory = os.path.dirname(self.currDirectory)
+        self.grandParentDirectory = os.path.dirname(self.parentDirectory)
 
         self.serviceInformation = {
             "ServiceLanguage" : "Python",
@@ -364,9 +365,9 @@ class PythonTemplateSetup():
         return file_path, file_name
 
     def addServiceFolder(self):
-        # Create a folder named service_<ServiceName>Service in the parent directory
+        # Create a folder named service_<ServiceName>Service in the grandparent directory
         folder_name = self.serviceFolderName
-        folder_path = os.path.join(self.parentDirectory, folder_name)
+        folder_path = os.path.join(self.grandParentDirectory, folder_name)
         try:
             os.makedirs(folder_path, exist_ok=True)
             print(f"Created folder: {folder_path}")
@@ -378,8 +379,8 @@ class PythonTemplateSetup():
         if(serverHost == "localhost"):
             serverHost = "127.0.0.1"
 
-        # Go one Parent Directory Relative to the Current File
-        json_file_path = os.path.join(self.parentDirectory, "ServiceURLMapping.json")
+        # Go one Parent Directory Relative to the Parent Directory (grandparent)
+        json_file_path = os.path.join(self.grandParentDirectory, "ServiceURLMapping.json")
 
         print(json_file_path)
 
@@ -407,7 +408,8 @@ class PythonTemplateSetup():
         print(f"Service information for {self.serviceName} added to ServiceURLMapping.json")
 
     def addServiceInfoToStartShellScript(self):
-        start_sh_path = os.path.join(self.currDirectory, "start-server.sh")
+        # start-server.sh is in the parent of currDirectory (grandparent)
+        start_sh_path = os.path.join(self.parentDirectory, "start-server.sh")
         try:
             with open(start_sh_path, "r") as f:
                 content = f.read()
@@ -423,7 +425,7 @@ class PythonTemplateSetup():
         pass
 
     def addServiceInfoToServiceJsonFile(self):
-        json_file_path = os.path.join(self.parentDirectory, "services.json")
+        json_file_path = os.path.join(self.grandParentDirectory, "services.json")
         print(json_file_path)
 
         if os.path.exists(json_file_path):
@@ -444,7 +446,7 @@ class PythonTemplateSetup():
 
     def addServiceInfoToServiceFile(self, file_path):
         templateType = self.serviceType
-        templatePath = os.path.join(self.currDirectory, "ServiceTemplates", "python", f"{templateType}.txt")
+        templatePath = os.path.join(self.parentDirectory, "ServiceTemplates", "python", f"{templateType}.txt")
         
         try:
             with open(templatePath, "r") as template_file:
