@@ -46,6 +46,7 @@ class PythonTemplateSetup():
         self.serviceHttpHost = None
         self.serviceHttpPort = None
         self.servicePrivilegedIpAddresses = []
+        self.enableCors = True  # Default: CORS enabled
 
     def getServiceName(self):
         print("Enter the Name of the Service")
@@ -223,6 +224,19 @@ class PythonTemplateSetup():
             "#<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>",
             f'    httpServerPrivilegedIpAddress = {privilegedIpsStr}'
         )
+
+        # Replace CORS middleware section
+        cors_line = 'self.app.add_middleware(CORSMiddleware, allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"],)'
+        if self.enableCors:
+            cors_code = f'        {cors_line}'
+        else:
+            cors_code = f'        #{cors_line}'
+        templateContent = self.replaceSection(
+            templateContent,
+            "#<HTTP_SERVER_CORS_ADDITION_START>",
+            "#<HTTP_SERVER_CORS_ADDITION_END>",
+            cors_code
+        )
         
         return templateContent
 
@@ -317,10 +331,21 @@ class PythonTemplateSetup():
         
         print(f"Updated .env file with new service environment variables")
 
+    def askEnableCors(self):
+        print("Enable CORS middleware for this service? (Y/n) [Default: Y]")
+        while True:
+            answer = input("Enable CORS? (Y/n): ").strip().lower()
+            if answer == "" or answer == "y":
+                return True
+            if answer == "n":
+                return False
+            print("Invalid input. Please enter 'Y' or 'n'.")
+
     def startServiceSetup(self):
         self.serviceName = self.getServiceName()
         self.serviceHttpHost, self.serviceHttpPort = self.getHostandPortForHttpServer()
         self.servicePrivilegedIpAddresses = self.getPrivilegedIpAddresses()
+        self.enableCors = self.askEnableCors()
         
         self.printServiceConfiguration()
         
