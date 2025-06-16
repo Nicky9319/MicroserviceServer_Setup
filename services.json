@@ -5,10 +5,11 @@
         "ServiceFolderName": "service_SampleService",
         "ServiceFileName": "sample-service.py",
         "ServiceHttpHost": "127.0.0.1",
+        "ServiceHttpPriviledgedIpAddress": [
+            "127.0.0.1",
+            "192.168.0.172"
+        ],
         "ServiceHttpPort": 8080,
-        "ServiceWsHost": null,
-        "ServiceWsPort": null,
-        "ServiceMessageQueue": true,
-        "ServiceType": "HTTP_QUEUE_MERGE"
+        "ServiceType": "HTTP_SERVICE"
     }
 ]

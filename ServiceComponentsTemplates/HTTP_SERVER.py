@@ -1,21 +1,12 @@
 import asyncio
-
-from fastapi import FastAPI, Response, Request
-from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi import FastAPI
 import uvicorn
-
-import asyncio
-import aio_pika
-
-
-import sys
-import os
 
 from dotenv import load_dotenv
 load_dotenv()
 
 
+from fastapi.middleware.cors import CORSMiddleware
 
 
 class HTTP_SERVER():
@@ -56,47 +47,11 @@ class HTTP_SERVER():
         server = uvicorn.Server(config)
         await server.serve()
 
-class Data():
-    def __init__(self):
-        self.value = None
+async def start_server():
+    server = HTTP_SERVER('127.0.0.1', 8000,[])
+    await server.RunServer()
+    pass
 
-    def get_value(self):
-        return self.value
-
-    def set_value(self, value):
-        self.value = value
-
-class Service():
-    def __init__(self, httpServer = None):
-        self.httpServer = httpServer
-
-    async def startService(self):
-        await self.httpServer.configure_routes()
-        await self.httpServer.run_app()
-
-        
-async def start_service():
-    dataClass = Data()
-
-    #<HTTP_SERVER_INSTANCE_INTIALIZATION_START>
-
-    #<HTTP_SERVER_PORT_START>
-    httpServerPort = 8080
-    #<HTTP_SERVER_PORT_END>
-
-    #<HTTP_SERVER_HOST_START>
-    httpServerHost = "127.0.0.1"
-    #<HTTP_SERVER_HOST_END>
-
-    #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_START>
-    httpServerPrivilegedIpAddress = ["127.0.0.1"]
-    #<HTTP_SERVER_PRIVILEGED_IP_ADDRESS_END>
-
-    http_server = HTTP_SERVER(httpServerHost=httpServerHost, httpServerPort=httpServerPort, httpServerPrivilegedIpAddress=httpServerPrivilegedIpAddress, data_class_instance=dataClass)
-    #<HTTP_SERVER_INSTANCE_INTIALIZATION_END>
-
-    service = Service(http_server)
-    await service.startService()
-
-if __name__ == "__main__":
-    asyncio.run(start_service())
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(start_server())
