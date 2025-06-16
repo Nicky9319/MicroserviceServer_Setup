@@ -26,7 +26,7 @@ class HTTP_SERVER {
     // /api/sample/ endpoint
 
     // /api/SampleService/example endpoint
-    this.app.get('/api/SampleService/example', (req, res) => {
+    this.app.post('/api/sample/new-example', (req, res) => {
       console.log("Example API Called");
       res.json({ message: "Example Response" });
     });
