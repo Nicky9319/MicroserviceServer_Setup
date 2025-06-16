@@ -2,20 +2,24 @@ import express from 'express';
 import cors from 'cors';
 
 class HTTP_SERVER {
-    constructor(httpServerHost, httpServerPort, httpServerPrivilegedIpAddress = ["127.0.0.1"], dataClassInstance = null) {
+    constructor(httpServerHost, httpServerPort, httpServerPrivilegedIpAddress = ["127.0.0.1"], dataClassInstance = null, enableCors = true) {
         this.app = express();
         this.host = httpServerHost;
         this.port = httpServerPort;
         this.privilegedIpAddress = httpServerPrivilegedIpAddress;
         this.dataClass = dataClassInstance;
+        this.corsEnabled = false;
 
-        // CORS middleware
-        this.app.use(cors({
-            origin: '*',
-            credentials: true,
-            methods: '*',
-            allowedHeaders: '*'
-        }));
+        // Conditionally add CORS middleware
+        if (enableCors) {
+            this.app.use(cors({
+                origin: '*',
+                credentials: true,
+                methods: '*',
+                allowedHeaders: '*'
+            }));
+            this.corsEnabled = true;
+        }
     }
 
     configureRoutes() {

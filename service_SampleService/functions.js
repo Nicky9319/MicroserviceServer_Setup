@@ -70,6 +70,27 @@ export function replacePrivilegedIpsInService(newIpList) {
     return modifiedContent;
 }
 
+/**
+ * Reads sample-service.js, replaces the CORS setting, and returns modified content
+ * @param {boolean} enableCors - Boolean value to set CORS enabled or disabled
+ * @returns {string} Modified service code with new CORS setting
+ */
+export function replaceCorsInService(enableCors) {
+    const serviceFilePath = path.join(__dirname, 'sample-service.js');
+    const serviceContent = fs.readFileSync(serviceFilePath, 'utf8');
+    
+    // Replace the enableCors line with the new value
+    const modifiedContent = serviceContent.replace(
+        /enableCors = (true|false)/,
+        `enableCors = ${enableCors}`
+    );
+    
+    // Write the modified content back to the file
+    fs.writeFileSync(serviceFilePath, modifiedContent, 'utf8');
+    
+    return modifiedContent;
+}
+
 // Example usage for host replacement
 replaceHostInService('127.0.0.1');
 console.log('Host replaced successfully!');
@@ -81,3 +102,7 @@ console.log('Port replaced successfully!');
 // Example usage for privileged IPs replacement
 replacePrivilegedIpsInService(['192.168.0.1', '10.0.0.1', '127.0.0.1']);
 console.log('Privileged IPs replaced successfully!');
+
+// Example usage for CORS replacement
+replaceCorsInService(true);
+console.log('CORS setting replaced successfully!');

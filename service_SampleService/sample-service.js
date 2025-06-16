@@ -16,7 +16,8 @@ function startService() {
         httpServerHost,
         httpServerPort,
         httpServerPrivilegedIpAddress,
-        dataClass
+        dataClass,
+        enableCors = true
     );
 
     const service = new Service(httpServer);
