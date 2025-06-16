@@ -13,7 +13,7 @@ class Data {
     }
 }
 
-class HTTPServer {
+class HTTP_SERVER {
     constructor(httpServerHost, httpServerPort, httpServerPrivilegedIpAddress = ["127.0.0.1"], dataClassInstance = null) {
         this.app = express();
         this.host = httpServerHost;
@@ -66,7 +66,7 @@ function startService() {
     const httpServerHost = "127.0.0.1";
     const httpServerPrivilegedIpAddress = ["127.0.0.1"];
 
-    const httpServer = new HTTPServer(
+    const httpServer = new HTTP_SERVER(
         httpServerHost,
         httpServerPort,
         httpServerPrivilegedIpAddress,
