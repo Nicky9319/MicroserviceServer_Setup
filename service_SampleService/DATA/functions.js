@@ -37,18 +37,29 @@ export function addNewVariable(variableName, defaultValue = null) {
         formattedDefaultValue = 'null';
     } else if (typeof defaultValue === 'string') {
         formattedDefaultValue = `'${defaultValue}'`;
+    } else if (Array.isArray(defaultValue)) {
+        formattedDefaultValue = JSON.stringify(defaultValue);
     } else {
         formattedDefaultValue = String(defaultValue);
     }
     
-    // Add property to constructor
-    const constructorProperty = `        this.${variableName} = ${formattedDefaultValue};`;
+    // Add property to constructor with proper this. prefix
+    const constructorProperty = `    this.${variableName} = ${formattedDefaultValue};`;
     
-    // Find the constructor and add the new property
-    sourceCode = sourceCode.replace(
-        /(constructor\(\) {[\s\S]*?)(    })/,
-        `$1${constructorProperty}\n$2`
-    );
+    // Handle both empty constructor and constructor with existing content
+    if (sourceCode.includes('constructor() {}')) {
+        // Empty constructor - replace with constructor containing the new property
+        sourceCode = sourceCode.replace(
+            /constructor\(\) {}/,
+            `constructor() {\n${constructorProperty}\n  }`
+        );
+    } else {
+        // Constructor with existing content - add to the end
+        sourceCode = sourceCode.replace(
+            /(constructor\(\)\s*{[\s\S]*?)(  })/,
+            `$1\n${constructorProperty}\n$2`
+        );
+    }
     
     // Create getter method
     const getterMethod = `    get_${variableName}() {
@@ -72,4 +83,35 @@ export function addNewVariable(variableName, defaultValue = null) {
     console.log(`Added variable '${variableName}' with getter/setter methods to Data class`);
 }
 
-addNewVariable('taxesPaids', false); // Example usage with boolean instead of string
+export function removeVariable(variableName) {
+    // Read the current data-class.js file
+    let sourceCode = fs.readFileSync(DATA_CLASS_PATH, 'utf8');
+    
+    // Check if variable exists in constructor
+    const constructorPropertyRegex = new RegExp(`\\s*this\\.${variableName}\\s*=.*?;\\n?`);
+    if (!constructorPropertyRegex.test(sourceCode)) {
+        console.log(`Variable '${variableName}' does not exist in the Data class`);
+        return;
+    }
+    
+    // Remove property from constructor
+    sourceCode = sourceCode.replace(constructorPropertyRegex, '');
+    
+    // Remove getter method
+    const getterMethodRegex = new RegExp(`\\s*get_${variableName}\\(\\)\\s*{[\\s\\S]*?}\\n?`, 'g');
+    sourceCode = sourceCode.replace(getterMethodRegex, '');
+    
+    // Remove setter method
+    const setterMethodRegex = new RegExp(`\\s*set_${variableName}\\([^)]*\\)\\s*{[\\s\\S]*?}\\n?`, 'g');
+    sourceCode = sourceCode.replace(setterMethodRegex, '');
+    
+    // Write the modified code back to the file
+    fs.writeFileSync(DATA_CLASS_PATH, sourceCode);
+    
+    console.log(`Removed variable '${variableName}' and its getter/setter methods from Data class`);
+}
+
+// Example usage
+removeVariable('newValue');
+// removeVariable('newValue', []);
+// removeVariable('taxesPaids'); // Uncomment to test removal
