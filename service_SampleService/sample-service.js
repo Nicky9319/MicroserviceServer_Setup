@@ -1,62 +1,8 @@
-const express = require('express');
-const cors = require('cors');
+import HTTP_SERVER from "./HTTP_SERVER/http-server-class.js";
+import Data from "./DATA/data-class.js";
+import Service from "./SERVICE/service-class.js";
 
-class Data {
-    constructor() {
-        this.value = null;
-    }
-    getValue() {
-        return this.value;
-    }
-    setValue(value) {
-        this.value = value;
-    }
-}
-
-class HTTP_SERVER {
-    constructor(httpServerHost, httpServerPort, httpServerPrivilegedIpAddress = ["127.0.0.1"], dataClassInstance = null) {
-        this.app = express();
-        this.host = httpServerHost;
-        this.port = httpServerPort;
-        this.privilegedIpAddress = httpServerPrivilegedIpAddress;
-        this.dataClass = dataClassInstance;
-
-        // CORS middleware
-        this.app.use(cors({
-            origin: '*',
-            credentials: true,
-            methods: '*',
-            allowedHeaders: '*'
-        }));
-    }
-
-    configureRoutes() {
-        // /api/sample/ endpoint
-        this.app.get('/api/sample/', (req, res) => {
-            console.log("Running Through Someone Else");
-            res.json({ message: "Hello World" });
-        });
-
-        // Add new APIs here if needed
-    }
-
-    runApp() {
-        this.app.listen(this.port, this.host, () => {
-            console.log(`Server running at http://${this.host}:${this.port}/`);
-        });
-    }
-}
-
-class Service {
-    constructor(httpServer = null) {
-        this.httpServer = httpServer;
-    }
-
-    startService() {
-        this.httpServer.configureRoutes();
-        this.httpServer.runApp();
-    }
-}
+import { fileURLToPath } from 'url';
 
 // Main entry point
 function startService() {
@@ -77,6 +23,7 @@ function startService() {
     service.startService();
 }
 
-if (require.main === module) {
+// ES6 equivalent of require.main === module
+if (import.meta.url === `file://${fileURLToPath(import.meta.url)}` && process.argv[1] === fileURLToPath(import.meta.url)) {
     startService();
 }
