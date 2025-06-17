@@ -5,6 +5,24 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
+ * Helper function to update services.json file
+ * @param {string} serviceName - Name of the service to update
+ * @param {string} key - Key to update in the service object
+ * @param {any} value - New value to set
+ */
+function updateServicesJson(serviceName, key, value) {
+    const servicesJsonPath = path.join(__dirname, '../services.json');
+    const servicesData = JSON.parse(fs.readFileSync(servicesJsonPath, 'utf8'));
+    
+    // Find the service by name and update the specified key
+    const serviceIndex = servicesData.findIndex(service => service.ServiceName === serviceName);
+    if (serviceIndex !== -1) {
+        servicesData[serviceIndex][key] = value;
+        fs.writeFileSync(servicesJsonPath, JSON.stringify(servicesData, null, 4), 'utf8');
+    }
+}
+
+/**
  * Reads sample-service.js, replaces the HTTP host, and returns modified content
  * @param {string} newHost - The new host to replace in the service
  * @returns {string} Modified service code with new host
@@ -21,6 +39,9 @@ export function replaceHostInService(newHost) {
     
     // Write the modified content back to the file
     fs.writeFileSync(serviceFilePath, modifiedContent, 'utf8');
+    
+    // Update services.json
+    updateServicesJson('Sample', 'ServiceHttpHost', newHost);
     
     return modifiedContent;
 }
@@ -42,6 +63,9 @@ export function replacePortInService(newPort) {
     
     // Write the modified content back to the file
     fs.writeFileSync(serviceFilePath, modifiedContent, 'utf8');
+    
+    // Update services.json
+    updateServicesJson('Sample', 'ServiceHttpPort', newPort);
     
     return modifiedContent;
 }
@@ -66,6 +90,9 @@ export function replacePrivilegedIpsInService(newIpList) {
     
     // Write the modified content back to the file
     fs.writeFileSync(serviceFilePath, modifiedContent, 'utf8');
+    
+    // Update services.json
+    updateServicesJson('Sample', 'ServiceHttpPriviledgedIpAddress', newIpList);
     
     return modifiedContent;
 }
@@ -100,7 +127,7 @@ replacePortInService(9090);
 console.log('Port replaced successfully!');
 
 // Example usage for privileged IPs replacement
-replacePrivilegedIpsInService(['192.168.0.1', '10.0.0.1', '127.0.0.1']);
+replacePrivilegedIpsInService(['192.168.0.1']);
 console.log('Privileged IPs replaced successfully!');
 
 // Example usage for CORS replacement

@@ -10,7 +10,7 @@ function startService() {
 
     const httpServerPort = 9090;
     const httpServerHost = "127.0.0.1";
-    const httpServerPrivilegedIpAddress = ["192.168.0.1", "10.0.0.1", "127.0.0.1"];
+    const httpServerPrivilegedIpAddress = ["192.168.0.1"];
 
     const httpServer = new HTTP_SERVER(
         httpServerHost,
