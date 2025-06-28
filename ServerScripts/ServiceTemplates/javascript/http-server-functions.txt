@@ -1,0 +1,191 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Service name configuration - modify this value as needed
+ * @type {string}
+ */
+const SERVICE_NAME = '{SERVICE_NAME_LOWER_PLACEHOLDER}';
+
+/**
+ * Adds a new API route to the HTTP server class file
+ * @param {string} remainingUrl - Remaining part of the URL after service name
+ * @param {string} method - HTTP method (get, post, put, delete, etc.)
+ */
+export function addApiRoute(remainingUrl, method = 'get') {
+    const filePath = path.join(__dirname, 'http-server-class.js');
+    
+    try {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Construct URL following the convention /api/{ServiceName}/{RemainingUrl}
+        const cleanRemainingUrl = remainingUrl.startsWith('/') ? remainingUrl.slice(1) : remainingUrl;
+        const apiUrl = `/api/${SERVICE_NAME}/${cleanRemainingUrl}`.replace(/\/+/g, '/').replace(/\/$/, '') || `/api/${SERVICE_NAME}/`;
+        
+        // Create the new API route code
+        const newApiCode = `
+    // ${apiUrl} endpoint
+    this.app.${method.toLowerCase()}('${apiUrl}', (req, res) => {
+      console.log("API Called");
+      res.json({ message: "API Response" });
+    });`;
+        
+        // Find the location to insert the new API (before "// Add new APIs here if needed")
+        const insertMarker = '// Add new APIs here if needed';
+        const insertIndex = fileContent.indexOf(insertMarker);
+        
+        if (insertIndex !== -1) {
+            // Insert the new API code before the marker
+            fileContent = fileContent.slice(0, insertIndex) + newApiCode + '\n\n    ' + fileContent.slice(insertIndex);
+            
+            // Write back to file
+            fs.writeFileSync(filePath, fileContent, 'utf8');
+            console.log(`API route added: ${method.toUpperCase()} ${apiUrl}`);
+        } else {
+            throw new Error('Could not find insertion point in the file');
+        }
+    } catch (error) {
+        console.error('Error adding API route:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Removes an existing API route from the HTTP server class file
+ * @param {string} url - URL of the route to remove (e.g., '/api/{service}/')
+ */
+export function removeApiRoute(url) {
+    const filePath = path.join(__dirname, 'http-server-class.js');
+    
+    try {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+        const lines = fileContent.split('\n');
+        const newLines = [];
+        let skipLines = false;
+        let braceCount = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // Check if this line starts the API route we want to remove
+            if (line.includes(`// ${url} endpoint`)) {
+                skipLines = true;
+                continue;
+            }
+            
+            if (skipLines) {
+                // Count braces to know when the function ends
+                for (const char of line) {
+                    if (char === '{') braceCount++;
+                    if (char === '}') braceCount--;
+                }
+                
+                // If we've closed all braces and found the ending });
+                if (braceCount === 0 && line.includes('});')) {
+                    skipLines = false;
+                    continue;
+                }
+                continue;
+            }
+            
+            newLines.push(line);
+        }
+        
+        const modifiedContent = newLines.join('\n');
+        fs.writeFileSync(filePath, modifiedContent, 'utf8');
+        console.log(`API route removed: ${url}`);
+    } catch (error) {
+        console.error('Error removing API route:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Gets a list of all API routes from the HTTP server class file
+ * @returns {Array} Array of API route objects
+ */
+export function getAllApiRoutes() {
+    const filePath = path.join(__dirname, 'http-server-class.js');
+    
+    try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const routes = [];
+        
+        // Regex to find all API routes in the format: this.app.method('url', ...)
+        const apiPattern = /this\.app\.([a-z]+)\('([^']+)'[^}]*\}/g;
+        let match;
+        
+        while ((match = apiPattern.exec(fileContent)) !== null) {
+            routes.push({
+                method: match[1].toUpperCase(),
+                url: match[2]
+            });
+        }
+        
+        return routes;
+    } catch (error) {
+        console.error('Error getting API routes:', error.message);
+        return [];
+    }
+}
+
+/**
+ * Updates an existing API route URL
+ * @param {string} existingUrl - Current URL of the route
+ * @param {string} newUrl - New URL for the route
+ */
+export function updateApiRouteUrl(existingUrl, newUrl) {
+    const filePath = path.join(__dirname, 'http-server-class.js');
+    
+    try {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Replace the URL in the route definition
+        const urlPattern = new RegExp(`this\\.app\\.[a-z]+\\('${existingUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`, 'g');
+        const methodMatch = fileContent.match(new RegExp(`this\\.app\\.([a-z]+)\\('${existingUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
+        
+        if (methodMatch) {
+            const method = methodMatch[1];
+            fileContent = fileContent.replace(urlPattern, `this.app.${method}('${newUrl}'`);
+            
+            // Also update the comment
+            const commentPattern = new RegExp(`// ${existingUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} endpoint`);
+            fileContent = fileContent.replace(commentPattern, `// ${newUrl} endpoint`);
+            
+            fs.writeFileSync(filePath, fileContent, 'utf8');
+            console.log(`API route URL updated: ${existingUrl} -> ${newUrl}`);
+        } else {
+            console.warn(`API route not found: ${existingUrl}`);
+        }
+    } catch (error) {
+        console.error('Error updating API route URL:', error.message);
+        throw error;
+    }
+}
+
+/**
+ * Updates an existing API route HTTP method
+ * @param {string} url - URL of the route
+ * @param {string} newMethod - New HTTP method
+ */
+export function updateApiRouteMethod(url, newMethod) {
+    const filePath = path.join(__dirname, 'http-server-class.js');
+    
+    try {
+        let fileContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Find and replace the method
+        const methodPattern = new RegExp(`this\\.app\\.[a-z]+\\('${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`);
+        fileContent = fileContent.replace(methodPattern, `this.app.${newMethod.toLowerCase()}('${url}'`);
+        
+        fs.writeFileSync(filePath, fileContent, 'utf8');
+        console.log(`API route method updated for ${url}: ${newMethod.toUpperCase()}`);
+    } catch (error) {
+        console.error('Error updating API route method:', error.message);
+        throw error;
+    }
+} 

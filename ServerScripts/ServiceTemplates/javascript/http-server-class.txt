@@ -1,0 +1,52 @@
+import express from 'express';
+import cors from 'cors';
+
+class HTTP_SERVER {
+  constructor(httpServerHost, httpServerPort, httpServerPrivilegedIpAddress = ["127.0.0.1"], dataClassInstance = null, enableCors = true) {
+    this.app = express();
+    this.host = httpServerHost;
+    this.port = httpServerPort;
+    this.privilegedIpAddress = httpServerPrivilegedIpAddress;
+    this.dataClass = dataClassInstance;
+    this.corsEnabled = false;
+
+    //<HTTP_SERVER_CORS_ADDITION_START>
+    // Conditionally add CORS middleware
+    if (enableCors) {
+      this.app.use(cors({
+        origin: '*',
+        credentials: true,
+        methods: '*',
+        allowedHeaders: '*'
+      }));
+      this.corsEnabled = true;
+    }
+    //<HTTP_SERVER_CORS_ADDITION_END>
+
+    // Middleware setup
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+  }
+
+  configureRoutes() {
+    //<HTTP_SERVER_API_{/api/sample/}_START>
+    // /api/sample/ endpoint
+    this.app.get('/api/sample/', (req, res) => {
+      console.log("Sample API Called");
+      res.json({ message: "Hello World" });
+    });
+    //<HTTP_SERVER_API_{/api/sample/}_END>
+
+    //<HTTP_SERVER_NEW_API_START>
+    // Add new APIs here if needed
+    //<HTTP_SERVER_NEW_API_END>
+  }
+
+  runApp() {
+    this.app.listen(this.port, this.host, () => {
+      console.log(`Server running at http://${this.host}:${this.port}/`);
+    });
+  }
+}
+
+export default HTTP_SERVER; 
